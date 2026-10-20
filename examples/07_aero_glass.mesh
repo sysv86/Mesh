@@ -1,0 +1,373 @@
+// Example 7: Windows Aero Glass — Mesh capability study (.mesh v1.0.0)
+// Vista / 7 Aero language, with real engine depth instead of faux layers.
+// Engine features exercised:
+//   diffusion wallpaper, noise-gradient frosted frame, true blur shadow,
+//   glow, SDF smooth-union folder, clip + screen-blend specular sheen,
+//   spline reflection, ring + sector CPU gadget, repeat(i) dial ticks,
+//   conic/radial/linear gradients, inner/outer stroke alignment, animation.
+
+mesh "aero_glass" {
+  canvas {
+    width: 960
+    height: 600
+    background: #071A2B
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  font "ui" {
+    family: "Open Sans"
+    fallback: "Noto Sans"
+  }
+
+  let ink      = #F2F8FD
+  let ink_dim  = #C6D8E6
+  let accent   = oklch(0.82, 0.14, 210)
+
+  // ---------------- Desktop wallpaper ----------------
+  diffusion_gradient "aero_desktop" {
+    point(0.12, 0.14, #0A2B46, weight: 1.4)
+    point(0.52, 0.28, #2E8FC4, weight: 1.2)
+    point(0.88, 0.10, #0B3A58, weight: 1.0)
+    point(0.24, 0.86, #061726, weight: 1.5)
+    point(0.80, 0.78, #0E4E72, weight: 1.1)
+  }
+
+  radial_gradient "wall_glow" {
+    center: (0.5, 0.35)
+    radius: 0.62
+    stop(0.0, fade(#7FD4FF, 0.30))
+    stop(0.45, fade(#3A9BD0, 0.12))
+    stop(1.0, fade(#071A2B, 0.0))
+  }
+
+  radial_gradient "orb_body" {
+    center: (0.42, 0.30)
+    radius: 0.62
+    stop(0.0, #BFEFFF)
+    stop(0.35, #46B4EC)
+    stop(0.72, #0C6FAE)
+    stop(1.0, #06395C)
+  }
+
+  linear_gradient "title_sheen" {
+    angle: 90
+    stop(0.0, fade(#FFFFFF, 0.62))
+    stop(0.42, fade(#FFFFFF, 0.08))
+    stop(0.55, fade(#FFFFFF, 0.02))
+    stop(0.86, fade(#FFFFFF, 0.14))
+    stop(1.0, fade(#FFFFFF, 0.05))
+  }
+
+  // Frosted Aero frame: procedural FBM sample of two glass tints
+  noise_gradient "aero_frame" {
+    scale: 3.2
+    octaves: 4
+    persistence: 0.55
+    lacunarity: 2.1
+    seed: 7
+    grain: 0.012
+    stop(0.0, oklch(0.76, 0.045, 225, 0.58))
+    stop(0.42, oklch(0.36, 0.055, 240, 0.52))
+    stop(1.0, oklch(0.11, 0.030, 252, 0.86))
+  }
+
+  linear_gradient "content_glass" {
+    angle: 90
+    stop(0.0, fade(#FFFFFF, 0.91))
+    stop(0.55, fade(#F2F8FC, 0.87))
+    stop(1.0, fade(#DCE9F2, 0.85))
+  }
+
+  linear_gradient "pane_glass" {
+    angle: 90
+    stop(0.0, fade(#FFFFFF, 0.58))
+    stop(1.0, fade(#DCEAF4, 0.44))
+  }
+
+  linear_gradient "taskbar_glass" {
+    angle: 90
+    stop(0.0, fade(#BFE0F2, 0.46))
+    stop(0.14, fade(#5E93B2, 0.42))
+    stop(0.55, fade(#123A55, 0.80))
+    stop(1.0, fade(#04121E, 0.90))
+  }
+
+  linear_gradient "task_active" {
+    angle: 90
+    stop(0.0, fade(#FFFFFF, 0.46))
+    stop(0.50, fade(#A8D4EC, 0.20))
+    stop(1.0, fade(#FFFFFF, 0.30))
+  }
+
+  linear_gradient "close_btn" {
+    angle: 90
+    stop(0.0, fade(#F8B0A6, 0.95))
+    stop(0.45, fade(#DC5A4C, 0.95))
+    stop(0.55, fade(#B93325, 0.96))
+    stop(1.0, fade(#8C1C12, 0.96))
+  }
+
+  linear_gradient "address_glass" {
+    angle: 90
+    stop(0.0, fade(#FFFFFF, 0.96))
+    stop(1.0, fade(#EAF3F9, 0.92))
+  }
+
+  linear_gradient "sheen_band" {
+    angle: 90
+    stop(0.0, fade(#FFFFFF, 0.55))
+    stop(0.55, fade(#FFFFFF, 0.08))
+    stop(1.0, fade(#FFFFFF, 0.0))
+  }
+
+  conic_gradient "arc_conic" {
+    stop(0.0, #7FE3FF)
+    stop(0.35, #35B6F0)
+    stop(0.70, #7C7CF0)
+    stop(1.0, #7FE3FF)
+  }
+
+  rect { x: 0; y: 0; width: 960; height: 600; fill: @aero_desktop }
+  circle { center: (480, 190); radius: 380; fill: @wall_glow; blend: screen }
+  ellipse { center: (180, 120); radii: (240, 90); fill: fade(#8FE0FF, 0.06); blend: screen }
+  ellipse { center: (780, 470); radii: (300, 120); fill: fade(#4AA8D8, 0.06); blend: screen }
+
+  // ---------------- Sidebar CPU gadget ----------------
+  group "cpu_gadget" {
+    circle { center: (916, 118); radius: 42; fill: fade(#061B29, 0.58); stroke: fade(#CFEFFF, 0.30); stroke_width: 1.5 }
+    ring { center: (916, 118); radius: 32; inner_radius: 25; fill: fade(#FFFFFF, 0.12) }
+    sector "cpu_arc" {
+      center: (916, 118)
+      radius: 32
+      inner_radius: 25
+      start_angle: -90
+      end_angle: oscillate(t, 0.20, -60, 200)
+      fill: @arc_conic
+      glow(8, fade(#5FD0FF, 0.55))
+    }
+    repeat "cpu_ticks" {
+      count: 24
+      pivot: (916, 118)
+      step_rotate: 15
+      line {
+        from: (916, 81)
+        to: (916, 85)
+        stroke: fade(#DFF5FF, 0.42)
+        stroke_width: 1.5
+      }
+    }
+    text { at: (916, 122); content: "37%"; size: 11; weight: bold; align: center; fill: @ink }
+    text { at: (916, 156); content: "CPU"; size: 9; weight: 400; align: center; letter_spacing: 1.2; fill: @ink_dim }
+  }
+
+  // ---------------- Aero glass frame ----------------
+  rect "window_frame" {
+    x: 90
+    y: 60
+    width: 780
+    height: 470
+    radius: 8
+    fill: @aero_frame
+    stroke: fade(#EAF7FF, 0.62)
+    stroke_width: 1
+    stroke_align: inner
+    shadow(0, 20, 42, fade(#000000, 0.45))
+  }
+
+  // Top specular rim
+  rect { x: 96; y: 61; width: 768; height: 3; radius: 2; fill: fade(#FFFFFF, 0.42) }
+
+  // ---------------- Title bar ----------------
+  rect "titlebar" {
+    x: 98
+    y: 68
+    width: 764
+    height: 34
+    fill: @title_sheen
+  }
+
+  // Specular wash clipped to the frame and screen-blended
+  ellipse "frame_sheen" {
+    center: (420, 58)
+    radii: (430, 74)
+    fill: @sheen_band
+    clip: @window_frame
+    blend: screen
+    opacity: 0.38
+  }
+
+  spline "glass_streak" {
+    points: [
+      (108, 64),
+      (300, 71),
+      (520, 63),
+      (700, 69),
+      (854, 63)
+    ]
+    tension: 0.5
+    stroke: fade(#FFFFFF, 0.50)
+    stroke_width: 2
+    clip: @window_frame
+    blend: screen
+  }
+
+  // Title glyph: SDF smooth union of folder body + tab
+  boolean "title_folder" {
+    op: smooth_union(1.2)
+    fill: #F4D46A
+    stroke: fade(#5A4310, 0.70)
+    stroke_width: 1
+    rect { x: 108; y: 81; width: 18; height: 9 }
+    rect { x: 108; y: 78; width: 8; height: 4 }
+  }
+  text { at: (135, 87); content: "Libraries"; size: 13; weight: 400; fill: fade(#000000, 0.45) }
+  text { at: (134, 86); content: "Libraries"; size: 13; weight: 400; fill: @ink }
+
+  // Aero caption buttons
+  rect { x: 766; y: 72; width: 26; height: 20; radius: 3; fill: fade(#FFFFFF, 0.24); stroke: fade(#FFFFFF, 0.48); stroke_width: 1 }
+  line { from: (774, 86); to: (784, 86); stroke: @ink; stroke_width: 2 }
+  rect { x: 794; y: 72; width: 26; height: 20; radius: 3; fill: fade(#FFFFFF, 0.24); stroke: fade(#FFFFFF, 0.48); stroke_width: 1 }
+  rect { x: 802; y: 79; width: 10; height: 8; fill: none; stroke: @ink; stroke_width: 2 }
+  rect { x: 822; y: 72; width: 46; height: 20; radius: 4; fill: @close_btn; stroke: fade(#FFD9D3, 0.60); stroke_width: 1 }
+  line { from: (840, 78); to: (850, 86); stroke: #FFFFFF; stroke_width: 2 }
+  line { from: (850, 78); to: (840, 86); stroke: #FFFFFF; stroke_width: 2 }
+
+  // ---------------- Content shell ----------------
+  rect "content_shell" {
+    x: 98
+    y: 102
+    width: 764
+    height: 420
+    fill: @content_glass
+  }
+
+  // Toolbar / address row
+  rect { x: 98; y: 102; width: 764; height: 38; fill: @pane_glass }
+  rect { x: 98; y: 139; width: 764; height: 1; fill: fade(#7E9AAA, 0.45) }
+
+  circle { center: (114, 121); radius: 11; fill: fade(#FFFFFF, 0.55); stroke: fade(#6F93A8, 0.55); stroke_width: 1 }
+  polygon { points: [(118, 115), (118, 127), (109, 121)]; fill: #2A5A78 }
+  circle { center: (142, 121); radius: 11; fill: fade(#FFFFFF, 0.40); stroke: fade(#6F93A8, 0.40); stroke_width: 1 }
+  polygon { points: [(138, 115), (138, 127), (147, 121)]; fill: #7E9AAA }
+
+  rect { x: 160; y: 107; width: 548; height: 28; radius: 3; fill: @address_glass; stroke: fade(#8BA6B8, 0.70); stroke_width: 1 }
+  text { at: (170, 121); content: "Libraries"; size: 13; weight: 400; fill: #1A3547 }
+  polygon { points: [(247, 118), (251, 122), (255, 118)]; fill: #5E7F93 }
+
+  rect { x: 718; y: 107; width: 128; height: 28; radius: 3; fill: @address_glass; stroke: fade(#8BA6B8, 0.70); stroke_width: 1 }
+  text { at: (728, 121); content: "Search"; size: 12; weight: 400; fill: #7D93A2 }
+  circle { center: (832, 120); radius: 4; fill: none; stroke: #7D93A2; stroke_width: 1.5 }
+  line { from: (835, 123); to: (839, 127); stroke: #7D93A2; stroke_width: 1.5 }
+
+  // ---------------- Navigation pane ----------------
+  rect { x: 98; y: 140; width: 172; height: 350; fill: @pane_glass }
+  rect { x: 269; y: 140; width: 1; height: 350; fill: fade(#8CA8BA, 0.48) }
+
+  text { at: (110, 156); content: "Navigation"; size: 11; weight: bold; fill: #5E7F93 }
+
+  rect "nav_selected" { x: 104; y: 166; width: 160; height: 30; radius: 3; fill: fade(#FFFFFF, 0.62); stroke: fade(#7FA6C0, 0.40); stroke_width: 1 }
+  text { at: (110, 185); content: "Libraries"; size: 12; weight: 400; fill: #17384D }
+
+  text { at: (110, 219); content: "Documents"; size: 12; weight: 400; fill: #234B63 }
+  text { at: (110, 249); content: "Music"; size: 12; weight: 400; fill: #234B63 }
+  text { at: (110, 279); content: "Pictures"; size: 12; weight: 400; fill: #234B63 }
+  text { at: (110, 309); content: "Videos"; size: 12; weight: 400; fill: #234B63 }
+
+  rect { x: 110; y: 328; width: 148; height: 1; fill: fade(#8CA8BA, 0.45) }
+  text { at: (110, 352); content: "Computer"; size: 12; weight: 400; fill: #234B63 }
+  text { at: (110, 382); content: "Network"; size: 12; weight: 400; fill: #234B63 }
+
+  // ---------------- File list ----------------
+  rect { x: 270; y: 140; width: 592; height: 350; fill: fade(#FFFFFF, 0.84) }
+
+  rect { x: 270; y: 140; width: 592; height: 30; fill: fade(#DCE8F1, 0.92) }
+  rect { x: 270; y: 169; width: 592; height: 1; fill: fade(#A5BCCB, 0.70) }
+  text { at: (284, 155); content: "Name"; size: 12; weight: 400; fill: #33566C }
+  text { at: (512, 155); content: "Date modified"; size: 12; weight: 400; fill: #33566C }
+  text { at: (668, 155); content: "Type"; size: 12; weight: 400; fill: #33566C }
+  text { at: (846, 155); content: "Size"; size: 12; weight: 400; align: right; fill: #33566C }
+
+  rect { x: 270; y: 201; width: 592; height: 1; fill: fade(#C7D8E3, 0.80) }
+  rect { x: 270; y: 245; width: 592; height: 1; fill: fade(#C7D8E3, 0.80) }
+  rect { x: 270; y: 289; width: 592; height: 1; fill: fade(#C7D8E3, 0.80) }
+  rect { x: 270; y: 333; width: 592; height: 1; fill: fade(#C7D8E3, 0.80) }
+
+  // Row 1: Documents
+  polygon { points: [(288, 181), (298, 181), (302, 185), (314, 185), (314, 197), (288, 197)]; fill: #F3D371; stroke: fade(#8A6A14, 0.70); stroke_width: 1 }
+  text { at: (326, 191); content: "Documents"; size: 13; weight: 400; fill: #1B3546 }
+  text { at: (512, 191); content: "20.10.2026 14:12"; size: 12; weight: 400; fill: #4A6678 }
+  text { at: (668, 191); content: "File folder"; size: 12; weight: 400; fill: #4A6678 }
+  text { at: (846, 191); content: "—"; size: 12; weight: 400; align: right; fill: #4A6678 }
+
+  // Row 2: Music
+  polygon { points: [(288, 225), (298, 225), (302, 229), (314, 229), (314, 241), (288, 241)]; fill: #F3D371; stroke: fade(#8A6A14, 0.70); stroke_width: 1 }
+  text { at: (326, 235); content: "Music"; size: 13; weight: 400; fill: #1B3546 }
+  text { at: (512, 235); content: "18.10.2026 09:03"; size: 12; weight: 400; fill: #4A6678 }
+  text { at: (668, 235); content: "File folder"; size: 12; weight: 400; fill: #4A6678 }
+  text { at: (846, 235); content: "—"; size: 12; weight: 400; align: right; fill: #4A6678 }
+
+  // Row 3: Pictures
+  polygon { points: [(288, 269), (298, 269), (302, 273), (314, 273), (314, 285), (288, 285)]; fill: #F3D371; stroke: fade(#8A6A14, 0.70); stroke_width: 1 }
+  text { at: (326, 279); content: "Pictures"; size: 13; weight: 400; fill: #1B3546 }
+  text { at: (512, 279); content: "12.10.2026 18:40"; size: 12; weight: 400; fill: #4A6678 }
+  text { at: (668, 279); content: "File folder"; size: 12; weight: 400; fill: #4A6678 }
+  text { at: (846, 279); content: "—"; size: 12; weight: 400; align: right; fill: #4A6678 }
+
+  // Row 4: Videos
+  polygon { points: [(288, 313), (298, 313), (302, 317), (314, 317), (314, 329), (288, 329)]; fill: #F3D371; stroke: fade(#8A6A14, 0.70); stroke_width: 1 }
+  text { at: (326, 323); content: "Videos"; size: 13; weight: 400; fill: #1B3546 }
+  text { at: (512, 323); content: "08.10.2026 21:17"; size: 12; weight: 400; fill: #4A6678 }
+  text { at: (668, 323); content: "File folder"; size: 12; weight: 400; fill: #4A6678 }
+  text { at: (846, 323); content: "—"; size: 12; weight: 400; align: right; fill: #4A6678 }
+
+  // Details pane
+  rect { x: 98; y: 490; width: 764; height: 32; fill: @pane_glass }
+  rect { x: 98; y: 490; width: 764; height: 1; fill: fade(#8CA8BA, 0.55) }
+  text { at: (110, 507); content: "4 items"; size: 12; weight: 400; fill: #33566C }
+  text { at: (852, 507); content: "Libraries"; size: 12; weight: 400; align: right; fill: #33566C }
+
+  // ---------------- Aero taskbar ----------------
+  rect { x: 0; y: 560; width: 960; height: 40; fill: @taskbar_glass }
+  rect { x: 0; y: 560; width: 960; height: 1; fill: fade(#E8F7FF, 0.55) }
+  rect { x: 0; y: 561; width: 960; height: 8; fill: @title_sheen }
+  rect { x: 0; y: 569; width: 960; height: 1; fill: fade(#FFFFFF, 0.14) }
+
+  // Start orb
+  circle { center: (34, 580); radius: 28; fill: fade(#8CE4FF, 0.14); blend: screen }
+  circle "start_orb" {
+    center: (34, 580)
+    radius: 21
+    fill: @orb_body
+    stroke: fade(#D9F6FF, 0.65)
+    stroke_width: 1.5
+    glow(16, fade(#6FD8FF, 0.55))
+  }
+  ellipse { center: (28, 571); radii: (11, 6); fill: fade(#FFFFFF, 0.55) }
+  polygon { points: [(25, 574), (32, 572), (32, 579), (25, 581)]; fill: #FFFFFF }
+  polygon { points: [(33, 572), (40, 570), (40, 577), (33, 579)]; fill: fade(#FFFFFF, 0.88) }
+  polygon { points: [(25, 582), (32, 580), (32, 587), (25, 589)]; fill: fade(#FFFFFF, 0.88) }
+  polygon { points: [(33, 580), (40, 578), (40, 585), (33, 587)]; fill: #FFFFFF }
+
+  // Active application button
+  rect { x: 72; y: 564; width: 186; height: 32; radius: 4; fill: @task_active; stroke: fade(#D6F0FF, 0.42); stroke_width: 1 }
+  rect { x: 72; y: 564; width: 186; height: 1; fill: fade(#FFFFFF, 0.50) }
+  polygon { points: [(84, 574), (94, 574), (98, 578), (110, 578), (110, 590), (84, 590)]; fill: #F3D371; stroke: fade(#8A6A14, 0.70); stroke_width: 1 }
+  text { at: (120, 582); content: "Libraries"; size: 12; weight: 400; fill: @ink }
+
+  // Inactive application buttons
+  rect { x: 264; y: 564; width: 138; height: 32; radius: 4; fill: fade(#FFFFFF, 0.12); stroke: fade(#D6F0FF, 0.22); stroke_width: 1 }
+  text { at: (276, 582); content: "Internet Explorer"; size: 12; font: "ui"; fill: @ink_dim }
+
+  rect { x: 408; y: 564; width: 108; height: 32; radius: 4; fill: fade(#FFFFFF, 0.12); stroke: fade(#D6F0FF, 0.22); stroke_width: 1 }
+  text { at: (420, 582); content: "Notepad"; size: 12; weight: 400; fill: @ink_dim }
+
+  // System tray
+  rect { x: 782; y: 564; width: 172; height: 32; radius: 3; fill: fade(#FFFFFF, 0.10); stroke: fade(#D6F0FF, 0.18); stroke_width: 1 }
+  line { from: (792, 583); to: (798, 583); stroke: @ink_dim; stroke_width: 2 }
+  line { from: (795, 580); to: (795, 586); stroke: @ink_dim; stroke_width: 2 }
+  circle { center: (812, 582); radius: 5; fill: none; stroke: @ink_dim; stroke_width: 1.5 }
+  polygon { points: [(820, 586), (826, 582), (826, 590)]; fill: @ink_dim }
+  text { at: (840, 583); content: "19:45"; size: 12; weight: 400; fill: @ink }
+  text { at: (886, 583); content: "20.10.2026"; size: 12; weight: 400; fill: @ink_dim }
+}

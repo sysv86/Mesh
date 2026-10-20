@@ -1,0 +1,174 @@
+mesh "typography_specimen" {
+  canvas {
+    width: 1200
+    height: 820
+    background: #0A0E13
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  // Self-contained faces: the files live next to this document and are loaded
+  // through the real TTF importer. Family names remain available as a fallback.
+  font "regular" {
+    family: "Open Sans"
+    src: "fonts/OpenSans-Regular.ttf"
+    fallback: "Noto Sans"
+  }
+  font "bold" {
+    family: "Open Sans"
+    src: "fonts/OpenSans-Bold.ttf"
+    fallback: "Noto Sans"
+    weight: 700
+  }
+  font "italic" {
+    family: "Open Sans"
+    src: "fonts/OpenSans-Italic.ttf"
+    fallback: "Noto Sans"
+    style: italic
+  }
+  font "serif" {
+    family: "Noto Serif"
+    fallback: "DejaVu Serif"
+  }
+  font "mono" {
+    family: "DejaVu Sans Mono"
+    fallback: "Liberation Mono"
+  }
+
+  linear_gradient "hero_ink" {
+    from: (0.0, 0.0)
+    to: (1.0, 0.0)
+    stop(0.0, #F0F6FC)
+    stop(0.55, #79C0FF)
+    stop(1.0, #D2A8FF)
+  }
+
+  linear_gradient "band_ink" {
+    from: (0.0, 0.0)
+    to: (1.0, 0.0)
+    stop(0.0, #FF7B72)
+    stop(0.5, #FFA657)
+    stop(1.0, #7EE787)
+  }
+
+  radial_gradient "halo" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#1F6FEB, 0.26))
+    stop(0.55, fade(#1F6FEB, 0.07))
+    stop(1.0, fade(#0A0E13, 0.0))
+  }
+
+  circle { center: (970, 120); radius: 520; fill: @halo; blend: screen }
+  circle { center: (120, 760); radius: 360; fill: @halo; blend: screen }
+
+  // ── Masthead ──────────────────────────────────────────────────────────────
+  text { at: (64, 62); baseline: true; align: left; content: "MESH TYPE FOUNDRY  /  SPECIMEN 01"; size: 11; font: "mono"; letter_spacing: 2.2; fill: #8B949E }
+  text { at: (1136, 62); baseline: true; align: right; content: "REAL OUTLINES · REAL METRICS"; size: 11; font: "mono"; letter_spacing: 1.6; fill: #8B949E }
+  line { from: (64, 86); to: (1136, 86); stroke: #30363D; stroke_width: 1 }
+
+  // ── Hero ──────────────────────────────────────────────────────────────────
+  text {
+    at: (62, 232)
+    baseline: true
+    align: left
+    content: "Type is"
+    size: 112
+    font: "serif"
+    line_height: 0.96
+    fill: @hero_ink
+  }
+  text {
+    at: (62, 334)
+    baseline: true
+    align: left
+    content: "as geometry."
+    size: 112
+    font: "serif"
+    line_height: 0.96
+    fill: @hero_ink
+  }
+
+  text {
+    at: (918, 300)
+    baseline: true
+    align: center
+    content: "Aa"
+    size: 268
+    font: "bold"
+    fill: none
+    stroke: #58A6FF
+    stroke_width: 2.0
+    opacity: 0.9
+  }
+
+  text {
+    at: (66, 392)
+    baseline: true
+    align: left
+    content: "A type system built on FreeType, HarfBuzz and Fontconfig — shaped, kerned and flattened into the same SDF pipeline as every other Mesh shape."
+    size: 16
+    font: "regular"
+    line_height: 1.55
+    fill: #C9D1D9
+  }
+
+  line { from: (64, 436); to: (1136, 436); stroke: #30363D; stroke_width: 1 }
+
+  // ── Weight / style specimens ──────────────────────────────────────────────
+  text { at: (64, 474); baseline: true; align: left; content: "REGULAR / 400"; size: 11; font: "mono"; letter_spacing: 1.8; fill: #8B949E }
+  text { at: (64, 546); baseline: true; align: left; content: "Aa Bb Cc 123"; size: 42; font: "regular"; fill: #F0F6FC }
+
+  text { at: (342, 474); baseline: true; align: left; content: "ITALIC / 400"; size: 11; font: "mono"; letter_spacing: 1.8; fill: #8B949E }
+  text { at: (342, 546); baseline: true; align: left; content: "Aa Bb Cc 123"; size: 42; font: "italic"; fill: #F0F6FC }
+
+  text { at: (620, 474); baseline: true; align: left; content: "BOLD / 700"; size: 11; font: "mono"; letter_spacing: 1.8; fill: #8B949E }
+  text { at: (620, 546); baseline: true; align: left; content: "Aa Bb Cc 123"; size: 42; font: "bold"; fill: #F0F6FC }
+
+  text { at: (898, 474); baseline: true; align: left; content: "MONO / 400"; size: 11; font: "mono"; letter_spacing: 1.8; fill: #8B949E }
+  text { at: (898, 546); baseline: true; align: left; content: "Aa Bb Cc 123"; size: 36; font: "mono"; fill: #F0F6FC }
+
+  line { from: (64, 588); to: (1136, 588); stroke: #30363D; stroke_width: 1 }
+
+  // ── Wrapping + spacing + Unicode fallback ─────────────────────────────────
+  text {
+    at: (64, 614)
+    baseline: true
+    align: left
+    content: "Text wraps against shaped advances, not byte counts. Letter spacing, word spacing, line height and visual-centre or baseline anchoring are all explicit properties of the same text node."
+    size: 15
+    font: "regular"
+    line_height: 1.55
+    max_width: 500
+    wrap: true
+    fill: #8B949E
+  }
+
+  text { at: (64, 704); baseline: true; align: left; content: "Unicode + fallback: Hello · العربية · עברית · नमस्ते · ไทย · 日本語"; size: 16; font: "regular"; font_fallback: "Noto Sans, Noto Sans Arabic, Noto Sans Hebrew, Noto Sans Devanagari, Noto Sans Thai, Noto Sans CJK JP"; fill: #D2A8FF }
+
+  // ── Text as clip geometry ─────────────────────────────────────────────────
+  text "clip_type" {
+    at: (64, 818)
+    baseline: true
+    align: left
+    content: "TYPOGRAPHY"
+    size: 104
+    font: "bold"
+    letter_spacing: 1.0
+    fill: #FFFFFF
+    opacity: 0
+  }
+  rect {
+    x: 0
+    y: 0
+    width: 1200
+    height: 820
+    fill: @band_ink
+    clip: @clip_type
+    blend: screen
+  }
+
+  text { at: (912, 704); baseline: true; align: left; content: "SHADOW + GLOW"; size: 24; font: "bold"; fill: #F0F6FC; shadow: (3, 4, 12, fade(#000000, 0.7)); glow: (14, fade(#58A6FF, 0.35)) }
+
+  text { at: (1136, 780); baseline: true; align: right; content: "09 / TYPOGRAPHY"; size: 11; font: "mono"; letter_spacing: 1.8; fill: #8B949E }
+}

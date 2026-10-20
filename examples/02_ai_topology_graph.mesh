@@ -1,0 +1,131 @@
+// Example 2: AI Relational Topology Graph (.mesh v1.0.0)
+// Demonstrates why AI agents never hallucinate connector coordinates in .mesh:
+// Every edge, port, and label is anchored relationally to @node.right_center, @node.left_center, etc.
+
+mesh "ai_topology_graph" {
+  canvas {
+    width: 820
+    height: 440
+    background: oklch(0.15, 0.02, 255)
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  linear_gradient "node_fill" {
+    from: (0, 0)
+    to: (1, 1)
+    stop(0.0, oklch(0.28, 0.05, 255))
+    stop(1.0, oklch(0.20, 0.04, 265))
+  }
+
+  rect "lexer_node" {
+    x: 60
+    y: 160
+    width: 170
+    height: 90
+    radius: 16
+    fill: @node_fill
+    stroke: oklch(0.75, 0.16, 200)
+    stroke_width: 3
+    stroke_align: inner
+    shadow: (0, 10, 24, oklch(0.05, 0.01, 260, 0.65))
+  }
+
+  text "lexer_lbl" {
+    at: @lexer_node.center
+    content: "LEXER AST"
+    size: 18
+    align: center
+    fill: oklch(0.95, 0.02, 200)
+  }
+
+  rect "solver_node" {
+    x: @lexer_node.right + 95
+    y: @lexer_node.top
+    width: 190
+    height: 90
+    radius: 16
+    fill: @node_fill
+    stroke: oklch(0.78, 0.18, 150)
+    stroke_width: 3
+    stroke_align: inner
+    shadow: (0, 10, 24, oklch(0.05, 0.01, 260, 0.65))
+  }
+
+  text "solver_lbl" {
+    at: @solver_node.center
+    content: "SOLVER IR"
+    size: 18
+    align: center
+    fill: oklch(0.95, 0.02, 150)
+  }
+
+  rect "native_out" {
+    x: @solver_node.right + 95
+    y: 75
+    width: 180
+    height: 85
+    radius: 16
+    fill: @node_fill
+    stroke: oklch(0.78, 0.19, 310)
+    stroke_width: 3
+    stroke_align: inner
+  }
+
+  text "native_lbl" {
+    at: @native_out.center
+    content: "NATIVE PNG"
+    size: 17
+    align: center
+    fill: oklch(0.95, 0.04, 310)
+  }
+
+  rect "browser_out" {
+    x: @solver_node.right + 95
+    y: 250
+    width: 180
+    height: 85
+    radius: 16
+    fill: @node_fill
+    stroke: oklch(0.82, 0.17, 75)
+    stroke_width: 3
+    stroke_align: inner
+  }
+
+  text "browser_lbl" {
+    at: @browser_out.center
+    content: "WEBGPU HTML"
+    size: 17
+    align: center
+    fill: oklch(0.95, 0.04, 75)
+  }
+
+  // Zero-hardcode relational connectors between nodes
+  line "edge_1" {
+    from: @lexer_node.right_center
+    to: @solver_node.left_center
+    stroke: oklch(0.80, 0.15, 180)
+    stroke_width: 4
+  }
+
+  path "edge_2_top" {
+    move(@solver_node.right_center)
+    cubic(@solver_node.right_center + (55, 0), @native_out.left_center + (-55, 0), @native_out.left_center)
+    stroke: oklch(0.78, 0.19, 310)
+    stroke_width: 4
+  }
+
+  path "edge_3_bot" {
+    move(@solver_node.right_center)
+    cubic(@solver_node.right_center + (55, 0), @browser_out.left_center + (-55, 0), @browser_out.left_center)
+    stroke: oklch(0.82, 0.17, 75)
+    stroke_width: 4
+  }
+
+  // Port connection dots anchored automatically to endpoints
+  circle "port_1" { center: @lexer_node.right_center; radius: 6; fill: oklch(0.90, 0.12, 200) }
+  circle "port_2" { center: @solver_node.left_center; radius: 6; fill: oklch(0.90, 0.12, 150) }
+  circle "port_3" { center: @solver_node.right_center; radius: 6; fill: oklch(0.90, 0.12, 150) }
+  circle "port_4" { center: @native_out.left_center; radius: 6; fill: oklch(0.90, 0.14, 310) }
+  circle "port_5" { center: @browser_out.left_center; radius: 6; fill: oklch(0.92, 0.14, 75) }
+}

@@ -1,0 +1,707 @@
+// Example 4: X-Pulse Neural Bento Widget (.mesh v1.0.0 Production Showcase)
+// Style: Modern X (Twitter) Design Engineering Bento Widget (Rauno / Emil / Linear / Dynamic Island aesthetic)
+// Demonstrates:
+//   - Perceptual OKLCH color science + FBM noise_gradient glass + freeform diffusion_gradient backlight
+//   - Dynamic Island pill with real-time morphing SDF smooth_union(k) metaball indicator
+//   - Parametric repeat(i, rep_t) 22-bar neural frequency spectrum with per-bar phase & OKLab color mixing
+//   - Dual animated Catmull-Rom splines + sweeping playhead scanner with live telemetry badge
+//   - Orbital compute gauge with radial repeat ticks, animated sector arcs, and rotating star core
+//   - Bottom Bento micro-cards: marching-ants GPU pipeline, liquid OKLCH mixer, and spring-physics toggle
+
+mesh "x_neural_bento_widget" {
+  canvas {
+    width: 960
+    height: 580
+    background: oklch(0.09, 0.018, 262)
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  // ---- Perceptual Color Tokens & Layout Constants ----
+  let c_cyan    = oklch(0.80, 0.17, 198)
+  let c_emerald = oklch(0.82, 0.19, 152)
+  let c_violet  = oklch(0.72, 0.22, 298)
+  let c_amber   = oklch(0.84, 0.17, 78)
+  let c_rose    = oklch(0.74, 0.21, 15)
+  let c_surface = oklch(0.14, 0.024, 260)
+  let c_card    = oklch(0.17, 0.028, 260, 0.88)
+  let c_rim     = oklch(0.92, 0.03, 230, 0.28)
+
+  // ---- Gradients & Procedural Shaders ----
+  diffusion_gradient "bento_aurora" {
+    point(0.10, 0.15, oklch(0.42, 0.18, 295, 0.85), weight: 1.5)
+    point(0.88, 0.18, oklch(0.45, 0.16, 198, 0.85), weight: 1.4)
+    point(0.55, 0.88, oklch(0.38, 0.16, 155, 0.80), weight: 1.3)
+    point(0.18, 0.82, oklch(0.15, 0.04, 262, 0.95), weight: 1.6)
+  }
+
+  noise_gradient "matte_glass" {
+    scale: 6.0
+    octaves: 4
+    persistence: 0.52
+    seed: 19
+    grain: 0.018
+    stop(0.0, oklch(0.13, 0.022, 260, 0.94))
+    stop(1.0, oklch(0.18, 0.032, 252, 0.94))
+  }
+
+  radial_gradient "soft_aura" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(@c_cyan, 0.22))
+    stop(0.55, fade(@c_violet, 0.09))
+    stop(1.0, oklch(0.11, 0.02, 260, 0.0))
+  }
+
+  linear_gradient "rim_specular" {
+    angle: 135
+    stop(0.0, oklch(0.96, 0.04, 210, 0.52))
+    stop(0.45, oklch(0.65, 0.06, 260, 0.18))
+    stop(1.0, oklch(0.82, 0.14, 295, 0.38))
+  }
+
+  linear_gradient "wave_grad" {
+    from: (0.0, 0.5)
+    to: (1.0, 0.5)
+    stop(0.0, @c_cyan)
+    stop(0.5, @c_emerald)
+    stop(1.0, @c_violet)
+  }
+
+  linear_gradient "arc_grad" {
+    angle: 45
+    stop(0.0, @c_cyan)
+    stop(1.0, @c_emerald)
+  }
+
+  // ---- 1. Outer Bento Glass Shell ----
+  rect "widget_shell" {
+    x: 36
+    y: 28
+    width: width - 72
+    height: height - 56
+    radius: 28
+    fill: @bento_aurora
+    stroke: @rim_specular
+    stroke_width: 2.5
+    stroke_align: inner
+    grain: 0.015
+    shadow(0, 22, 44, oklch(0.02, 0.01, 260, 0.82))
+  }
+
+  // Inner dark glass overlay inside shell
+  rect "shell_inner" {
+    x: @widget_shell.left + 3
+    y: @widget_shell.top + 3
+    width: @widget_shell.width - 6
+    height: @widget_shell.height - 6
+    radius: 25
+    fill: oklch(0.11, 0.02, 260, 0.78)
+  }
+
+  // Volumetric soft ambient light clipped inside widget_shell
+  circle "ambient_orb" {
+    clip: @widget_shell
+    blend: screen
+    center: (
+      oscillate(t, 0.5, @widget_shell.left + 220, @widget_shell.right - 220),
+      oscillate(t, 0.5, @widget_shell.top + 140, @widget_shell.bottom - 140, 90)
+    )
+    radius: 220
+    fill: @soft_aura
+  }
+
+  // ---- 2. Top Dynamic Island Header & Live Telemetry Bar ----
+  rect "island_pill" {
+    x: @widget_shell.left + 24
+    y: @widget_shell.top + 20
+    width: 344
+    height: 42
+    radius: 21
+    fill: oklch(0.08, 0.015, 260, 0.90)
+    stroke: oklch(0.85, 0.08, 200, 0.35)
+    stroke_width: 1.5
+    stroke_align: inner
+    shadow(0, 6, 16, fade(#000000, 0.55))
+  }
+
+  // Morphing SDF Smooth-Union Metaball inside Dynamic Island
+  boolean "island_metaball" {
+    op: smooth_union(9)
+    fill: mix(@c_emerald, @c_cyan, oscillate(t, 1.0, 0.0, 1.0))
+    glow(10, fade(@c_emerald, 0.65))
+    circle {
+      center: (@island_pill.left + 24, @island_pill.center_y)
+      radius: 8
+    }
+    circle {
+      center: (
+        @island_pill.left + 24 + oscillate(t, 1.0, -10, 12),
+        @island_pill.center_y + oscillate(t, 1.0, -4, 4, 90)
+      )
+      radius: 5.5
+    }
+  }
+
+  text "island_title" {
+    at: (@island_pill.left + 52, @island_pill.center_y)
+    content: "X-PULSE // NEURAL ENGINE V1.0"
+    size: 13
+    weight: bold
+    letter_spacing: 1.2
+    fill: oklch(0.96, 0.02, 220)
+  }
+
+  // Mode selector tabs in header
+  rect "tab_group" {
+    x: @island_pill.right + 18
+    y: @island_pill.top
+    width: 256
+    height: 42
+    radius: 21
+    fill: oklch(0.12, 0.02, 260, 0.78)
+    stroke: @c_rim
+    stroke_width: 1.5
+    stroke_align: inner
+  }
+
+  // Animated active tab pill sliding between modes
+  rect "active_tab_pill" {
+    x: @tab_group.left + 6 + oscillate(t, 0.5, 0, 122)
+    y: @tab_group.top + 5
+    width: 122
+    height: 32
+    radius: 16
+    fill: mix(fade(@c_cyan, 0.28), fade(@c_violet, 0.28), oscillate(t, 0.5, 0, 1))
+    stroke: mix(@c_cyan, @c_violet, oscillate(t, 0.5, 0, 1))
+    stroke_width: 1.5
+    stroke_align: inner
+  }
+
+  text "tab_lbl_1" {
+    at: (@tab_group.left + 67, @tab_group.center_y)
+    content: "SPECTRUM"
+    size: 12
+    align: center
+    letter_spacing: 1
+    fill: oklch(0.95, 0.02, 210)
+  }
+
+  text "tab_lbl_2" {
+    at: (@tab_group.left + 189, @tab_group.center_y)
+    content: "TOPOLOGY"
+    size: 12
+    align: center
+    letter_spacing: 1
+    fill: oklch(0.82, 0.04, 240)
+  }
+
+  // Right status & FPS pill (aligned to @widget_shell.right - 24 = 900)
+  rect "fps_pill" {
+    x: @widget_shell.right - 228
+    y: @island_pill.top
+    width: 204
+    height: 42
+    radius: 21
+    fill: oklch(0.10, 0.02, 260, 0.88)
+    stroke: fade(@c_emerald, 0.45)
+    stroke_width: 1.5
+    stroke_align: inner
+  }
+
+  circle "fps_dot" {
+    center: (@fps_pill.left + 22, @fps_pill.center_y)
+    radius: oscillate(t, 1.0, 4.5, 6.5)
+    fill: @c_emerald
+    glow(9, fade(@c_emerald, 0.75))
+  }
+
+  text "fps_text" {
+    at: (@fps_pill.left + 40, @fps_pill.center_y)
+    content: "120 FPS | 0.8 MS"
+    size: 13
+    weight: bold
+    letter_spacing: 1
+    fill: @c_emerald
+  }
+
+  // ---- 3. Left Bento Card: Real-Time Neural Spectrum & Waveform ----
+  rect "spectrum_card" {
+    x: @widget_shell.left + 24
+    y: @island_pill.bottom + 18
+    width: 532
+    height: 246
+    radius: 22
+    fill: @matte_glass
+    stroke: @c_rim
+    stroke_width: 1.5
+    stroke_align: inner
+    shadow(0, 12, 24, fade(#000000, 0.45))
+  }
+
+  text "spec_title" {
+    at: (@spectrum_card.left + 22, @spectrum_card.top + 26)
+    content: "NEURAL TOKEN STREAM & LATENCY WAVE"
+    size: 13
+    weight: bold
+    letter_spacing: 1.2
+    fill: oklch(0.92, 0.02, 230)
+  }
+
+  rect "spec_badge" {
+    x: @spectrum_card.right - 140
+    y: @spectrum_card.top + 13
+    width: 120
+    height: 26
+    radius: 13
+    fill: fade(@c_cyan, 0.16)
+    stroke: fade(@c_cyan, 0.55)
+    stroke_width: 1.2
+    stroke_align: inner
+  }
+
+  text "spec_badge_txt" {
+    at: @spec_badge.center
+    content: "+42.8K TOK/S"
+    size: 11
+    align: center
+    letter_spacing: 0.8
+    fill: @c_cyan
+  }
+
+  // Subtle horizontal grid lines inside spectrum_card
+  repeat "spec_grid_lines" {
+    count: 3
+    let gy = @spectrum_card.top + 68 + i * 54
+    line {
+      from: (@spectrum_card.left + 20, gy)
+      to: (@spectrum_card.right - 20, gy)
+      stroke: oklch(0.35, 0.03, 255, 0.28)
+      stroke_width: 1
+      dash: [6, 6]
+    }
+  }
+
+  // 22-Bar Parametric Equalizer using v1.0.0 repeat(i, rep_t)
+  repeat "spectrum_bars" {
+    count: 22
+    let bar_h = oscillate(t, 1.0, 22, 128, i * 26)
+    let bx = @spectrum_card.left + 24 + i * 22.4
+    let by = @spectrum_card.bottom - 22 - bar_h
+    rect {
+      x: bx
+      y: by
+      width: 13
+      height: bar_h
+      radius: 6.5
+      fill: mix(@c_cyan, @c_violet, rep_t)
+      opacity: 0.42
+    }
+  }
+
+  // Control points for primary wave
+  let wy0 = @spectrum_card.bottom - 88  + oscillate(t, 1.0, -30, 30, 0)
+  let wy1 = @spectrum_card.bottom - 122 + oscillate(t, 1.0, -40, 40, 65)
+  let wy2 = @spectrum_card.bottom - 84  + oscillate(t, 1.0, -34, 34, 135)
+  let wy3 = @spectrum_card.bottom - 134 + oscillate(t, 1.0, -42, 42, 205)
+  let wy4 = @spectrum_card.bottom - 94  + oscillate(t, 1.0, -32, 32, 275)
+  let wy5 = @spectrum_card.bottom - 116 + oscillate(t, 1.0, -30, 30, 330)
+
+  // Secondary harmonic spline wave
+  spline "harmonic_wave" {
+    points: [
+      (@spectrum_card.left + 24,  @spectrum_card.bottom - 75 + oscillate(t, 1.0, -24, 24, 45)),
+      (@spectrum_card.left + 125, @spectrum_card.bottom - 95 + oscillate(t, 1.0, -35, 35, 110)),
+      (@spectrum_card.left + 225, @spectrum_card.bottom - 65 + oscillate(t, 1.0, -28, 28, 175)),
+      (@spectrum_card.left + 325, @spectrum_card.bottom - 105 + oscillate(t, 1.0, -38, 38, 240)),
+      (@spectrum_card.left + 425, @spectrum_card.bottom - 70 + oscillate(t, 1.0, -26, 26, 305)),
+      (@spectrum_card.right - 24, @spectrum_card.bottom - 90 + oscillate(t, 1.0, -30, 30, 360))
+    ]
+    tension: 0.5
+    stroke: fade(@c_violet, 0.65)
+    stroke_width: 2.5
+    dash: [8, 5]
+    dash_offset: -t * 48
+  }
+
+  // Primary glowing Catmull-Rom telemetry spline
+  spline "primary_wave" {
+    points: [
+      (@spectrum_card.left + 24,  wy0),
+      (@spectrum_card.left + 125, wy1),
+      (@spectrum_card.left + 225, wy2),
+      (@spectrum_card.left + 325, wy3),
+      (@spectrum_card.left + 425, wy4),
+      (@spectrum_card.right - 24, wy5)
+    ]
+    tension: 0.5
+    stroke: @wave_grad
+    stroke_width: 4
+    cap: round
+    glow(14, fade(@c_cyan, 0.55))
+  }
+
+  // Animated playhead locked onto control node #4 (@spectrum_card.left + 325, wy3)
+  let scan_x = @spectrum_card.left + 325
+  let scan_y = wy3
+
+  line "playhead_line" {
+    from: (scan_x, @spectrum_card.top + 52)
+    to: (scan_x, @spectrum_card.bottom - 18)
+    stroke: fade(@c_emerald, 0.65)
+    stroke_width: 2
+    dash: [4, 4]
+  }
+
+  circle "playhead_halo" {
+    center: (scan_x, scan_y)
+    radius: oscillate(t, 1.0, 11, 16)
+    fill: fade(@c_emerald, 0.22)
+    stroke: fade(@c_emerald, 0.65)
+    stroke_width: 1.5
+  }
+
+  circle "playhead_orb" {
+    center: (scan_x, scan_y)
+    radius: 6.5
+    fill: #ffffff
+    stroke: @c_emerald
+    stroke_width: 3
+    glow(12, fade(@c_emerald, 0.85))
+  }
+
+  // ---- 4. Right Bento Card: Orbital Compute Core & Radial Activity Gauge ----
+  rect "core_card" {
+    x: @spectrum_card.right + 18
+    y: @spectrum_card.top
+    width: 290
+    height: 246
+    radius: 22
+    fill: @matte_glass
+    stroke: @c_rim
+    stroke_width: 1.5
+    stroke_align: inner
+    shadow(0, 12, 24, fade(#000000, 0.45))
+  }
+
+  text "core_title" {
+    at: (@core_card.left + 20, @core_card.top + 26)
+    content: "WGSL SHADER CORE"
+    size: 13
+    weight: bold
+    letter_spacing: 1.2
+    fill: oklch(0.92, 0.02, 230)
+  }
+
+  let gauge_center = (@core_card.center_x, @core_card.center_y + 16)
+
+  // 12 radial dial ticks around gauge_center
+  repeat "gauge_ticks" {
+    count: 12
+    pivot: gauge_center
+    step_rotate: 30
+    line {
+      from: (gauge_center.x, gauge_center.y - 78)
+      to: (gauge_center.x, gauge_center.y - 68)
+      stroke: oklch(0.65, 0.05, 240, 0.45)
+      stroke_width: 2
+    }
+  }
+
+  // Outer background ring track
+  ring "gauge_track" {
+    center: gauge_center
+    radius: 62
+    inner_radius: 46
+    fill: oklch(0.20, 0.03, 255, 0.75)
+  }
+
+  // Animated active sector arc
+  sector "gauge_active_arc" {
+    center: gauge_center
+    radius: 62
+    inner_radius: 46
+    start_angle: -90
+    end_angle: oscillate(t, 0.5, 95, 235)
+    fill: @arc_grad
+    glow(12, fade(@c_cyan, 0.45))
+  }
+
+  // Inner secondary ring
+  ring "gauge_inner_ring" {
+    center: gauge_center
+    radius: 38
+    inner_radius: 28
+    fill: fade(@c_violet, 0.25)
+  }
+
+  sector "gauge_inner_sector" {
+    center: gauge_center
+    radius: 38
+    inner_radius: 28
+    start_angle: oscillate(t, 1.0, 0, 180)
+    end_angle: oscillate(t, 1.0, 180, 360)
+    fill: @c_violet
+  }
+
+  // Rotating 6-ray star core inside gauge
+  star "core_star" {
+    center: gauge_center
+    radius: 19
+    inner_radius: 8
+    rays: 6
+    rotate: t * 90
+    fill: @c_amber
+    glow(12, fade(@c_amber, 0.65))
+  }
+
+  text "core_pct" {
+    at: (@core_card.right - 20, @core_card.top + 26)
+    content: "99.4%"
+    size: 13
+    weight: bold
+    align: right
+    fill: @c_emerald
+  }
+
+  // ---- 5. Bottom Bento Row: 3 Interactive Micro-Interaction Cards (Total width = 840) ----
+  let bot_y = @spectrum_card.bottom + 18
+  let bot_h = 148
+
+  // Card 5A: Live Marching-Ants GPU Pipeline (AST -> SDF -> WGSL)
+  rect "pipe_card" {
+    x: @spectrum_card.left
+    y: bot_y
+    width: 274
+    height: bot_h
+    radius: 20
+    fill: @matte_glass
+    stroke: @c_rim
+    stroke_width: 1.5
+    stroke_align: inner
+  }
+
+  text "pipe_title" {
+    at: (@pipe_card.left + 18, @pipe_card.top + 24)
+    content: "ZERO-DOM GPU PIPELINE"
+    size: 12
+    weight: bold
+    letter_spacing: 1
+    fill: oklch(0.88, 0.03, 230)
+  }
+
+  rect "node_ast" {
+    x: @pipe_card.left + 18
+    y: @pipe_card.top + 56
+    width: 66
+    height: 44
+    radius: 10
+    fill: oklch(0.18, 0.04, 250)
+    stroke: @c_cyan
+    stroke_width: 2
+    stroke_align: inner
+  }
+  text { at: @node_ast.center; content: "AST"; size: 12; align: center; fill: @c_cyan }
+
+  rect "node_sdf" {
+    x: @node_ast.right + 20
+    y: @node_ast.top
+    width: 66
+    height: 44
+    radius: 10
+    fill: oklch(0.18, 0.04, 280)
+    stroke: @c_violet
+    stroke_width: 2
+    stroke_align: inner
+  }
+  text { at: @node_sdf.center; content: "SDF"; size: 12; align: center; fill: @c_violet }
+
+  rect "node_wgsl" {
+    x: @node_sdf.right + 20
+    y: @node_ast.top
+    width: 66
+    height: 44
+    radius: 10
+    fill: oklch(0.18, 0.04, 155)
+    stroke: @c_emerald
+    stroke_width: 2
+    stroke_align: inner
+  }
+  text { at: @node_wgsl.center; content: "WGSL"; size: 12; align: center; fill: @c_emerald }
+
+  line "edge_ast_sdf" {
+    from: @node_ast.right_center
+    to: @node_sdf.left_center
+    stroke: @c_cyan
+    stroke_width: 2.5
+    dash: [5, 4]
+    dash_offset: -t * 36
+    arrow: end
+    arrow_size: 7
+  }
+
+  line "edge_sdf_wgsl" {
+    from: @node_sdf.right_center
+    to: @node_wgsl.left_center
+    stroke: @c_emerald
+    stroke_width: 2.5
+    dash: [5, 4]
+    dash_offset: -t * 36
+    arrow: end
+    arrow_size: 7
+  }
+
+  text "pipe_footer" {
+    at: (@pipe_card.left + 18, @pipe_card.bottom - 18)
+    content: "64X64 TILE BINNING | 4X RGSS"
+    size: 10
+    letter_spacing: 0.8
+    fill: oklch(0.70, 0.04, 240)
+  }
+
+  // Card 5B: Liquid OKLCH Metaball Fusion Card
+  rect "liquid_card" {
+    x: @pipe_card.right + 18
+    y: bot_y
+    width: 264
+    height: bot_h
+    radius: 20
+    fill: @matte_glass
+    stroke: @c_rim
+    stroke_width: 1.5
+    stroke_align: inner
+  }
+
+  text "liquid_title" {
+    at: (@liquid_card.left + 18, @liquid_card.top + 24)
+    content: "SDF SMOOTH CSG FUSION"
+    size: 12
+    weight: bold
+    letter_spacing: 1
+    fill: oklch(0.88, 0.03, 230)
+  }
+
+  boolean "liquid_blobs" {
+    op: smooth_union(20)
+    fill: @wave_grad
+    stroke: fade(#ffffff, 0.55)
+    stroke_width: 1.5
+    stroke_align: inner
+    glow(14, fade(@c_cyan, 0.45))
+
+    circle {
+      center: (
+        @liquid_card.center_x - oscillate(t, 1.0, 12, 38),
+        @liquid_card.center_y + 10
+      )
+      radius: 24
+    }
+    circle {
+      center: (
+        @liquid_card.center_x + oscillate(t, 1.0, 12, 38),
+        @liquid_card.center_y + 10
+      )
+      radius: 22
+    }
+    circle {
+      center: (
+        @liquid_card.center_x,
+        @liquid_card.center_y + 10 + oscillate(t, 1.0, -22, 18, 90)
+      )
+      radius: 16
+    }
+  }
+
+  text "liquid_footer" {
+    at: (@liquid_card.center_x, @liquid_card.bottom - 18)
+    content: "ANALYTICAL K=20 BLEND"
+    size: 10
+    align: center
+    letter_spacing: 0.8
+    fill: oklch(0.75, 0.06, 200)
+  }
+
+  // Card 5C: Tactile Spring Toggle & Command Dock (Right-aligned at 900)
+  rect "dock_card" {
+    x: @liquid_card.right + 18
+    y: bot_y
+    width: 266
+    height: bot_h
+    radius: 20
+    fill: @matte_glass
+    stroke: @c_rim
+    stroke_width: 1.5
+    stroke_align: inner
+  }
+
+  text "dock_title" {
+    at: (@dock_card.left + 18, @dock_card.top + 24)
+    content: "SPRING PHYSICS & DOCK"
+    size: 12
+    weight: bold
+    letter_spacing: 1
+    fill: oklch(0.88, 0.03, 230)
+  }
+
+  // Animated Toggle Switch Track
+  let toggle_prog = oscillate(t, 0.5, 0.0, 1.0)
+  rect "toggle_track" {
+    x: @dock_card.left + 18
+    y: @dock_card.top + 48
+    width: 74
+    height: 36
+    radius: 18
+    fill: mix(oklch(0.22, 0.03, 260), fade(@c_emerald, 0.38), toggle_prog)
+    stroke: mix(@c_rim, @c_emerald, toggle_prog)
+    stroke_width: 2
+    stroke_align: inner
+  }
+
+  circle "toggle_thumb" {
+    center: (
+      @toggle_track.left + 18 + toggle_prog * 38,
+      @toggle_track.center_y
+    )
+    radius: 13
+    fill: #ffffff
+    glow(10, fade(@c_emerald, toggle_prog * 0.8))
+    shadow(0, 3, 6, fade(#000000, 0.5))
+  }
+
+  text "toggle_lbl" {
+    at: (@toggle_track.right + 14, @toggle_track.center_y)
+    content: "TURBO AA 4X"
+    size: 12
+    weight: bold
+    fill: mix(oklch(0.72, 0.03, 250), @c_emerald, toggle_prog)
+  }
+
+  // Tactile Shortcut Keycap Pills at bottom of dock_card
+  rect "key_cmd" {
+    x: @dock_card.left + 18
+    y: @toggle_track.bottom + 16
+    width: 108
+    height: 32
+    radius: 8
+    fill: oklch(0.19, 0.03, 260)
+    stroke: oklch(0.75, 0.05, 240, 0.4)
+    stroke_width: 1.5
+    stroke_align: inner
+    shadow(0, 4, 8, fade(#000000, 0.45))
+  }
+  text { at: @key_cmd.center; content: "CMD + K"; size: 11; align: center; fill: oklch(0.92, 0.02, 230) }
+
+  rect "key_deploy" {
+    x: @key_cmd.right + 14
+    y: @key_cmd.top
+    width: 108
+    height: 32
+    radius: 8
+    fill: fade(@c_cyan, 0.22)
+    stroke: @c_cyan
+    stroke_width: 1.5
+    stroke_align: inner
+    glow(8, fade(@c_cyan, 0.35))
+  }
+  text { at: @key_deploy.center; content: "EXPORT V1.0"; size: 11; align: center; fill: @c_cyan }
+}

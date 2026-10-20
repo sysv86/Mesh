@@ -1,0 +1,283 @@
+// Example 6: Windows 8 Start Screen — Mesh capability study (.mesh v1.0.0)
+// Metro / WinRT design language, rebuilt with the full declarative toolkit.
+// Engine features exercised:
+//   mesh + radial + conic + linear gradients, screen blend, grid auto-layout,
+//   stack auto-layout, repeat(i) live equalizer, boolean smooth_union icons,
+//   path geometry, spline chart, ring + sector gauge, star gear, dash/arrow
+//   strokes, pulse()/oscillate() animation, relational @id anchors.
+
+mesh "win8_start_screen" {
+  canvas {
+    width: 960
+    height: 600
+    background: #121212
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  font "tile" {
+    family: "Open Sans"
+    weight: 600
+    fallback: "Noto Sans"
+  }
+
+  let white = #FFFFFF
+  let muted = #C8C8C8
+  let blue  = #0078D7
+  let teal  = #00ABA9
+  let green = #7FBA00
+  let orange= #F25022
+  let amber = #FFB900
+  let pink  = #D80073
+  let purple= #6A00FF
+  let indigo= #4B0082
+  let steel = #647687
+
+  mesh_gradient "start_wash" {
+    rows: 2
+    cols: 2
+    patch(0.0, 0.0, #191A1E)
+    patch(1.0, 0.0, #101014)
+    patch(0.0, 1.0, #141519)
+    patch(1.0, 1.0, #0C0C0F)
+  }
+
+  radial_gradient "start_glow" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#2E86D8, 0.18))
+    stop(0.55, fade(#2E86D8, 0.05))
+    stop(1.0, fade(#121212, 0.0))
+  }
+
+  conic_gradient "weather_twist" {
+    stop(0.0, #3B2A7A)
+    stop(0.35, #2A1D63)
+    stop(0.70, #412A82)
+    stop(1.0, #3B2A7A)
+  }
+
+  linear_gradient "ie_wash" {
+    angle: 135
+    stop(0.0, #0A8BE8)
+    stop(1.0, #0065B8)
+  }
+
+  rect { x: 0; y: 0; width: 960; height: 600; fill: @start_wash }
+  circle { center: (260, 120); radius: 340; fill: @start_glow; blend: screen }
+
+  // ---------------- Top status strip ----------------
+  text { at: (40, 44); content: "Alex"; size: 20; weight: 300; fill: @white }
+  rect { x: 848; y: 24; width: 48; height: 48; fill: @blue }
+  circle { center: (872, 42); radius: 9; fill: @white }
+  polygon { points: [(858, 66), (862, 54), (872, 50), (882, 54), (886, 66)]; fill: @white }
+  circle { center: (908, 42); radius: 9; fill: none; stroke: @muted; stroke_width: 2 }
+  line { from: (908, 32); to: (908, 42); stroke: @muted; stroke_width: 2 }
+
+  // ---------------- Tile row 1 ----------------
+  rect "tile_mail" { x: 40; y: 100; width: 140; height: 140; fill: @blue }
+  rect { x: 62; y: 128; width: 60; height: 42; fill: @white }
+  path "mail_flap" {
+    move(62, 128)
+    line(92, 150)
+    line(122, 128)
+    line(122, 133)
+    line(92, 155)
+    line(62, 133)
+    close()
+    fill: @blue
+  }
+  text { at: (56, 216); content: "Mail"; size: 15; weight: 400; fill: @white }
+  circle { center: (164, 116); radius: 9; fill: @white }
+  text { at: (164, 120); content: "3"; size: 12; weight: bold; align: center; fill: @blue }
+
+  rect "tile_calendar" { x: 188; y: 100; width: 140; height: 140; fill: @purple }
+  text { at: (204, 128); content: "OCT"; size: 14; weight: 400; fill: @white }
+  text { at: (202, 178); content: "20"; size: 58; weight: 300; fill: @white }
+  text { at: (204, 216); content: "Tuesday"; size: 14; weight: 400; fill: @white }
+
+  // People: smooth-union SDF avatars instead of stacked primitives
+  rect "tile_people" { x: 336; y: 100; width: 140; height: 140; fill: @teal }
+  boolean "people_primary" {
+    op: smooth_union(5)
+    fill: @white
+    circle { center: (406, 142); radius: 16 }
+    ellipse { center: (406, 184); radii: (27, 17) }
+  }
+  boolean "people_secondary" {
+    op: smooth_union(4)
+    fill: #B9F0EF
+    circle { center: (437, 148); radius: 11 }
+    ellipse { center: (437, 180); radii: (19, 12) }
+  }
+  text { at: (352, 216); content: "People"; size: 15; weight: 400; fill: @white }
+
+  // Weather: conic tile wash + smooth-union cloud
+  rect "tile_weather" { x: 484; y: 100; width: 140; height: 140; fill: @weather_twist }
+  circle { center: (526, 138); radius: 15; fill: @amber }
+  boolean "weather_cloud" {
+    op: smooth_union(7)
+    fill: @white
+    circle { center: (548, 156); radius: 18 }
+    circle { center: (566, 150); radius: 13 }
+    circle { center: (578, 160); radius: 14 }
+    rect { x: 530; y: 156; width: 50; height: 20 }
+  }
+  text { at: (500, 208); content: "21°"; size: 24; weight: 300; fill: @white }
+  text { at: (552, 208); content: "Sunny"; size: 12; weight: 400; fill: @muted }
+
+  // Internet Explorer (wide)
+  rect "tile_ie" { x: 632; y: 100; width: 288; height: 140; fill: @ie_wash }
+  text { at: (652, 180); content: "e"; size: 86; weight: 300; fill: @white }
+  text { at: (714, 132); content: "Internet Explorer"; size: 15; font: "tile"; fill: @white }
+  text { at: (714, 156); content: "Top sites"; size: 12; weight: 400; fill: #CFE6F7 }
+
+  // ---------------- Tile row 2 ----------------
+  // News (wide live tile, stack headline + spline sparkline)
+  rect "tile_news" { x: 40; y: 248; width: 288; height: 140; fill: @pink }
+  stack "news_headline" {
+    x: 60
+    y: 272
+    gap: 2
+    direction: vertical
+    text { at: (0, 0); content: "MARKET SURGES"; size: 22; weight: 300; fill: @white }
+    text { at: (0, 0); content: "AS TECH LEADS"; size: 22; weight: 300; fill: @white }
+  }
+  spline "news_spark" {
+    points: [
+      (60, 352),
+      (100, 340),
+      (140, 346),
+      (180, 332),
+      (220, 338),
+      (260, 326),
+      (300, 330)
+    ]
+    tension: 0.5
+    stroke: fade(#FFFFFF, 0.80)
+    stroke_width: 2
+    arrow: end
+    arrow_size: 7
+  }
+  text { at: (60, 366); content: "TODAY 09:41"; size: 11; weight: 400; fill: #FFB4D8 }
+  text { at: (300, 366); content: "NEWS"; size: 11; weight: bold; align: right; letter_spacing: 1.5; fill: #FFB4D8 }
+
+  // Music: repeat(i) equalizer driven by pulse()
+  rect "tile_music" { x: 336; y: 248; width: 140; height: 140; fill: @green }
+  repeat "music_bars" {
+    count: 9
+    let bar_h = 8 + pulse(t + i * 0.11, 0.85) * 46
+    rect {
+      x: 352 + i * 13
+      y: 342 - bar_h
+      width: 8
+      height: bar_h
+      fill: fade(#FFFFFF, 0.92)
+    }
+  }
+  text { at: (352, 376); content: "Music"; size: 15; weight: 400; fill: @white }
+
+  // Video
+  rect "tile_video" { x: 484; y: 248; width: 140; height: 140; fill: @orange }
+  polygon { points: [(534, 298), (534, 348), (580, 323)]; fill: @white }
+  text { at: (500, 376); content: "Video"; size: 15; weight: 400; fill: @white }
+
+  // SkyDrive cloud
+  rect "tile_skydrive" { x: 632; y: 248; width: 140; height: 140; fill: #00A4EF }
+  boolean "skydrive_cloud" {
+    op: smooth_union(8)
+    fill: @white
+    circle { center: (690, 332); radius: 20 }
+    circle { center: (714, 320); radius: 15 }
+    circle { center: (728, 334); radius: 18 }
+    rect { x: 672; y: 330; width: 66; height: 20 }
+  }
+  text { at: (648, 376); content: "SkyDrive"; size: 15; weight: 400; fill: @white }
+
+  // Games
+  rect "tile_games" { x: 780; y: 248; width: 140; height: 140; fill: @steel }
+  rect { x: 818; y: 294; width: 64; height: 40; fill: none; stroke: @white; stroke_width: 4 }
+  circle { center: (832, 314); radius: 3; fill: @white }
+  rect { x: 858; y: 306; width: 14; height: 4; fill: @white }
+  rect { x: 863; y: 301; width: 4; height: 14; fill: @white }
+  text { at: (796, 376); content: "Games"; size: 15; weight: 400; fill: @white }
+
+  // ---------------- Tile row 3: 6-across grid auto-layout ----------------
+  grid "app_grid" {
+    x: 40
+    y: 396
+    cols: 6
+    gap: 8
+
+    group "tile_desktop" {
+      rect { x: 0; y: 0; width: 140; height: 140; fill: #3A3A3A }
+      rect { x: 22; y: 28; width: 56; height: 38; fill: none; stroke: @white; stroke_width: 3 }
+      rect { x: 32; y: 38; width: 36; height: 18; fill: @teal }
+      rect { x: 40; y: 70; width: 20; height: 3; fill: @white }
+      rect { x: 28; y: 74; width: 44; height: 3; fill: @white }
+      text { at: (16, 116); content: "Desktop"; size: 15; weight: 400; fill: @white }
+    }
+
+    group "tile_control" {
+      rect { x: 0; y: 0; width: 140; height: 140; fill: #6D6D6D }
+      ring { center: (70, 58); radius: 36; inner_radius: 24; fill: fade(#FFFFFF, 0.32) }
+      sector {
+        center: (70, 58)
+        radius: 36
+        inner_radius: 24
+        start_angle: -90
+        end_angle: oscillate(t, 0.25, 10, 250)
+        fill: @white
+      }
+      text { at: (70, 63); content: "78%"; size: 12; weight: bold; align: center; fill: @white }
+      text { at: (16, 116); content: "Control Panel"; size: 15; weight: 400; fill: @white }
+    }
+
+    group "tile_office" {
+      rect { x: 0; y: 0; width: 140; height: 140; fill: #C0392B }
+      rect { x: 30; y: 30; width: 52; height: 44; fill: @white }
+      line { from: (56, 30); to: (56, 74); stroke: #C0392B; stroke_width: 4 }
+      line { from: (30, 52); to: (82, 52); stroke: #C0392B; stroke_width: 4 }
+      text { at: (16, 116); content: "Office"; size: 15; weight: 400; fill: @white }
+    }
+
+    group "tile_camera" {
+      rect { x: 0; y: 0; width: 140; height: 140; fill: #2D2D2D }
+      rect { x: 24; y: 30; width: 56; height: 40; fill: none; stroke: @white; stroke_width: 3 }
+      circle { center: (52, 50); radius: 13; fill: none; stroke: @white; stroke_width: 3 }
+      rect { x: 28; y: 24; width: 18; height: 6; fill: @white }
+      text { at: (16, 116); content: "Camera"; size: 15; weight: 400; fill: @white }
+    }
+
+    group "tile_store" {
+      rect { x: 0; y: 0; width: 140; height: 140; fill: @teal }
+      polygon { points: [(28, 34), (84, 34), (78, 78), (34, 78)]; fill: @white }
+      polyline { points: [(42, 34), (42, 24), (70, 24), (70, 34)]; stroke: @white; stroke_width: 4 }
+      text { at: (16, 116); content: "Store"; size: 15; weight: 400; fill: @white }
+    }
+
+    group "tile_settings" {
+      rect { x: 0; y: 0; width: 140; height: 140; fill: #767676 }
+      star "gear" {
+        center: (70, 56)
+        radius: 30
+        inner_radius: 22
+        rays: 12
+        fill: @white
+      }
+      circle { center: (70, 56); radius: 10; fill: #767676 }
+      text { at: (16, 116); content: "Settings"; size: 15; weight: 400; fill: @white }
+    }
+  }
+
+  // ---------------- Bottom affordances ----------------
+  circle "zoom_out" {
+    center: (884, 556)
+    radius: 20
+    fill: none
+    stroke: @white
+    stroke_width: 2
+  }
+  line { from: (876, 556); to: (892, 556); stroke: @white; stroke_width: 2 }
+  text { at: (40, 566); content: "Windows 8 Pro"; size: 12; weight: 400; fill: #8C8C8C }
+}

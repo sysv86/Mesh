@@ -1,0 +1,270 @@
+// Example 8: Windows 11 Fluent Settings — Mesh capability study (.mesh v1.0.0)
+// Windows 11 / Fluent language with Mica, elevation and spring motion.
+// Engine features exercised:
+//   mesh-gradient Bloom wallpaper, noise-gradient Mica surface, blurred window
+//   and card shadows, clip + screen sheen, boolean-subtract gear, ngon badge,
+//   path checkmark, spring() toggle, mix()/lighten()/darken() color science,
+//   relational anchors, Fluent caption glyphs and type hierarchy.
+
+mesh "win11_fluent" {
+  canvas {
+    width: 960
+    height: 600
+    background: #0A2E55
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  font "display" {
+    family: "Open Sans"
+    weight: 700
+    fallback: "Noto Sans"
+  }
+
+  let accent      = #0067C0
+  let accent_dark = darken(@accent, 0.10)
+  let accent_soft = lighten(@accent, 0.08)
+  let text        = #1A1A1A
+  let text_dim    = #5D5D5D
+  let hairline    = #E5E5E5
+  let mica        = #F3F3F3
+  let surface     = #FAFAFA
+  let white       = #FFFFFF
+
+  // ---------------- Windows 11 Bloom wallpaper ----------------
+  mesh_gradient "bloom_mesh" {
+    rows: 3
+    cols: 3
+    patch(0.0, 0.0, #06172E)
+    patch(0.5, 0.0, #0B3B6F)
+    patch(1.0, 0.0, #071C36)
+    patch(0.0, 0.5, #0E4F86)
+    patch(0.5, 0.5, #1E6FAE)
+    patch(1.0, 0.5, #0A2E55)
+    patch(0.0, 1.0, #071C36)
+    patch(0.5, 1.0, #0C3A63)
+    patch(1.0, 1.0, #06172E)
+  }
+
+  radial_gradient "bloom_core" {
+    center: (0.5, 0.5)
+    radius: 0.55
+    stop(0.0, fade(#9BD4FF, 0.32))
+    stop(0.45, fade(#3E8FD0, 0.12))
+    stop(1.0, fade(#0A2E55, 0.0))
+  }
+
+  linear_gradient "sheen" {
+    angle: 90
+    stop(0.0, fade(#FFFFFF, 0.38))
+    stop(0.55, fade(#FFFFFF, 0.06))
+    stop(1.0, fade(#FFFFFF, 0.0))
+  }
+
+  noise_gradient "mica_surface" {
+    scale: 7.0
+    octaves: 3
+    persistence: 0.45
+    lacunarity: 2.0
+    seed: 11
+    grain: 0.006
+    stop(0.0, #F5F5F5)
+    stop(0.55, #F1F1F1)
+    stop(1.0, #EDEDED)
+  }
+
+  rect { x: 0; y: 0; width: 960; height: 600; fill: @bloom_mesh }
+  circle { center: (470, 300); radius: 300; fill: @bloom_core; blend: screen }
+  ellipse { center: (470, 300); radii: (420, 150); fill: fade(#8FD0FF, 0.06); rotate: -24; blend: screen }
+  ellipse { center: (500, 300); radii: (160, 380); fill: fade(#6FB6F0, 0.05); rotate: 32; blend: screen }
+
+  // ---------------- Mica window ----------------
+  rect "app_window" {
+    x: 80
+    y: 50
+    width: 800
+    height: 500
+    radius: 8
+    fill: @mica_surface
+    stroke: fade(#000000, 0.18)
+    stroke_width: 1
+    shadow(0, 26, 58, fade(#000000, 0.38))
+  }
+
+  // Clipped top sheen, screen-blended over the Mica surface
+  rect "window_sheen" {
+    x: 80
+    y: 50
+    width: 800
+    height: 84
+    fill: @sheen
+    clip: @app_window
+    blend: screen
+    opacity: 0.45
+  }
+
+  // App icon: SDF gear (star minus centre)
+  rect { x: 92; y: 64; width: 20; height: 20; radius: 4; fill: @accent }
+  boolean "app_gear" {
+    op: subtract
+    fill: @white
+    star { center: (102, 74); radius: 8.5; inner_radius: 6.2; rays: 8 }
+    circle { center: (102, 74); radius: 3.1 }
+  }
+
+  text { at: (120, 75); content: "Settings"; size: 13; weight: 600; fill: @text }
+
+  // Caption buttons (min / max / close)
+  line { from: (763, 66); to: (773, 66); stroke: @text; stroke_width: 1 }
+  rect { x: 809; y: 61; width: 9; height: 9; fill: none; stroke: @text; stroke_width: 1 }
+  line { from: (855, 61); to: (863, 69); stroke: @text; stroke_width: 1 }
+  line { from: (863, 61); to: (855, 69); stroke: @text; stroke_width: 1 }
+
+  // ---------------- Navigation rail ----------------
+  rect { x: 80; y: 98; width: 232; height: 452; fill: @mica }
+  rect { x: 311; y: 98; width: 1; height: 452; fill: @hairline }
+
+  // Search field
+  rect { x: 96; y: 110; width: 200; height: 32; radius: 4; fill: @white; stroke: #E0E0E0; stroke_width: 1 }
+  circle { center: (111, 125); radius: 4.5; fill: none; stroke: @text_dim; stroke_width: 1.4 }
+  line { from: (114, 128); to: (118, 132); stroke: @text_dim; stroke_width: 1.4 }
+  text { at: (127, 126); content: "Find a setting"; size: 12; weight: 400; fill: #8A8A8A }
+
+  // Profile
+  circle { center: (108, 172); radius: 14; fill: @accent }
+  text { at: (108, 177); content: "A"; size: 13; weight: 600; align: center; fill: @white }
+  text { at: (132, 168); content: "Alex Morgan"; size: 13; weight: 600; fill: @text }
+  text { at: (132, 184); content: "alex@outlook.com"; size: 11; weight: 400; fill: @text_dim }
+
+  // Selected item background
+  rect "nav_selected" { x: 80; y: 466; width: 232; height: 36; fill: #E8F1FB }
+  rect { x: 80; y: 466; width: 3; height: 36; fill: @accent }
+
+  // Nav items
+  text { at: (124, 218); content: "System"; size: 13; weight: 400; fill: @text }
+  text { at: (124, 252); content: "Bluetooth & devices"; size: 13; weight: 400; fill: @text }
+  text { at: (124, 286); content: "Network & internet"; size: 13; weight: 400; fill: @text }
+  text { at: (124, 320); content: "Personalization"; size: 13; weight: 400; fill: @text }
+  text { at: (124, 354); content: "Apps"; size: 13; weight: 400; fill: @text }
+  text { at: (124, 388); content: "Accounts"; size: 13; weight: 400; fill: @text }
+  text { at: (124, 422); content: "Time & language"; size: 13; weight: 400; fill: @text }
+  text { at: (124, 456); content: "Accessibility"; size: 13; weight: 400; fill: @text }
+  text { at: (124, 490); content: "Windows Update"; size: 13; weight: 600; fill: @accent }
+
+  // Nav glyphs (Fluent line style)
+  rect { x: 99; y: 207; width: 5; height: 5; fill: @text_dim }
+  rect { x: 106; y: 207; width: 5; height: 5; fill: @text_dim }
+  rect { x: 99; y: 214; width: 5; height: 5; fill: @text_dim }
+  rect { x: 106; y: 214; width: 5; height: 5; fill: @text_dim }
+
+  polyline { points: [(100, 246), (106, 240), (112, 246)]; stroke: @text_dim; stroke_width: 1.5; cap: butt }
+  polyline { points: [(100, 253), (106, 247), (112, 253)]; stroke: @text_dim; stroke_width: 1.5; cap: butt }
+
+  circle { center: (106, 278); radius: 7; fill: none; stroke: @text_dim; stroke_width: 1.5 }
+  ellipse { center: (106, 278); radii: (3, 7); fill: none; stroke: @text_dim; stroke_width: 1 }
+  line { from: (99, 278); to: (113, 278); stroke: @text_dim; stroke_width: 1 }
+
+  circle { center: (106, 312); radius: 7; fill: none; stroke: @text_dim; stroke_width: 1.5 }
+  circle { center: (106, 312); radius: 2; fill: @text_dim }
+
+  rect { x: 99; y: 344; width: 7; height: 7; radius: 1; fill: none; stroke: @text_dim; stroke_width: 1.3 }
+  rect { x: 108; y: 344; width: 7; height: 7; radius: 1; fill: none; stroke: @text_dim; stroke_width: 1.3 }
+  rect { x: 99; y: 353; width: 7; height: 7; radius: 1; fill: none; stroke: @text_dim; stroke_width: 1.3 }
+  rect { x: 108; y: 353; width: 7; height: 7; radius: 1; fill: none; stroke: @text_dim; stroke_width: 1.3 }
+
+  circle { center: (106, 380); radius: 5; fill: none; stroke: @text_dim; stroke_width: 1.4 }
+  polyline { points: [(96, 394), (99, 387), (106, 384), (113, 387), (116, 394)]; stroke: @text_dim; stroke_width: 1.4; cap: butt }
+
+  circle { center: (106, 414); radius: 7; fill: none; stroke: @text_dim; stroke_width: 1.4 }
+  line { from: (106, 414); to: (106, 410); stroke: @text_dim; stroke_width: 1.4 }
+  line { from: (106, 414); to: (109, 416); stroke: @text_dim; stroke_width: 1.4 }
+
+  circle { center: (106, 447); radius: 3; fill: @text_dim }
+  polyline { points: [(96, 456), (99, 451), (106, 449), (113, 451), (116, 456)]; stroke: @text_dim; stroke_width: 1.3; cap: butt }
+  line { from: (96, 456); to: (116, 456); stroke: @text_dim; stroke_width: 1.3 }
+
+  polyline { points: [(102, 482), (102, 476), (110, 476), (110, 482)]; stroke: @accent; stroke_width: 1.5; cap: butt }
+  line { from: (99, 487); to: (113, 487); stroke: @accent; stroke_width: 1.5 }
+  polyline { points: [(106, 479), (106, 485), (109, 482)]; stroke: @accent; stroke_width: 1.3; cap: butt }
+
+  // ---------------- Content pane ----------------
+  rect { x: 312; y: 98; width: 568; height: 452; fill: @surface }
+
+  text { at: (340, 132); content: "Windows Update"; size: 28; font: "display"; fill: @text }
+  text { at: (340, 164); content: "Stay up to date with the latest features and fixes"; size: 12; weight: 400; fill: @text_dim }
+
+  // Primary update card
+  rect "update_card" {
+    x: 340
+    y: 176
+    width: 520
+    height: 150
+    radius: 8
+    fill: @white
+    stroke: @hairline
+    stroke_width: 1
+    shadow(0, 3, 10, fade(#000000, 0.08))
+  }
+
+  // Hex badge + vector check path
+  ngon "check_badge" { center: (370, 208); radius: 14; sides: 6; fill: #DFF6DD }
+  path "check_mark" {
+    move(363, 208)
+    quad(366, 212, 369, 214)
+    line(377, 202)
+    stroke: #0F7B0F
+    stroke_width: 2.2
+    cap: round
+    join: round
+  }
+
+  text { at: (394, 214); content: "You're up to date"; size: 20; weight: 600; fill: @text }
+  text { at: (368, 242); content: "Last checked: Today, 19:42"; size: 12; weight: 400; fill: @text_dim }
+
+  rect "btn_check" { x: 368; y: 260; width: 164; height: 34; radius: 4; fill: @accent }
+  text { at: (450, 277); content: "Check for updates"; size: 13; weight: 600; align: center; fill: @white }
+
+  rect { x: 544; y: 260; width: 148; height: 34; radius: 4; fill: @white; stroke: #D6D6D6; stroke_width: 1 }
+  text { at: (618, 277); content: "Update history"; size: 13; weight: 400; align: center; fill: @text }
+
+  // Secondary setting card
+  rect "latest_card" {
+    x: 340
+    y: 342
+    width: 520
+    height: 88
+    radius: 8
+    fill: @white
+    stroke: @hairline
+    stroke_width: 1
+    shadow(0, 3, 10, fade(#000000, 0.08))
+  }
+  text { at: (360, 368); content: "Get the latest updates as soon as they're available"; size: 13; weight: 600; fill: @text }
+  text { at: (360, 390); content: "Restart required to finish installing"; size: 11; weight: 400; fill: @text_dim }
+
+  // Spring-driven toggle
+  let knob = spring(t, 0.0, 0.0, 1.0, 150, 16)
+  let track = mix(#D6D6D6, @accent, knob)
+  rect "toggle_track" { x: 788; y: 366; width: 46; height: 24; radius: 12; fill: @track }
+  circle "toggle_knob" { center: (800 + knob * 22, 378); radius: 8; fill: @white }
+
+  // Pause updates card
+  rect "pause_card" {
+    x: 340
+    y: 446
+    width: 520
+    height: 72
+    radius: 8
+    fill: @white
+    stroke: @hairline
+    stroke_width: 1
+    shadow(0, 3, 10, fade(#000000, 0.08))
+  }
+  text { at: (360, 472); content: "Pause updates"; size: 13; weight: 600; fill: @text }
+  text { at: (360, 492); content: "For 1 week"; size: 11; weight: 400; fill: @text_dim }
+  polyline { points: [(836, 478), (842, 484), (848, 478)]; stroke: @text_dim; stroke_width: 1.8; cap: butt }
+
+  // Accent footer with lightened/darkened derivatives of the accent token
+  rect { x: 340; y: 526; width: 6; height: 6; radius: 3; fill: @accent_soft }
+  text { at: (352, 534); content: "Windows 11 Pro  •  24H2  •  Build 26100.2033"; size: 11; weight: 400; fill: #8A8A8A }
+}

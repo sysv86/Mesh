@@ -1,0 +1,339 @@
+// Example 5: Windows 95 Desktop — Mesh capability study (.mesh v1.0.0)
+// Chicago UI rebuilt natively in .mesh.
+// Engine features exercised:
+//   def / use components, grid auto-layout, stack auto-layout, boolean union CSG,
+//   path geometry, hard-offset shadow, dashed animated selection, relational
+//   anchors, repeat with `i`, linear gradient, pulse() animation, OKLCH-free
+//   authentic 16-color palette, inner text metrics, and @id bbox registration.
+
+mesh "win95_desktop" {
+  canvas {
+    width: 960
+    height: 600
+    background: #008080
+    font_family: "Liberation Sans"
+    font_fallback: "DejaVu Sans"
+  }
+
+  font "mono" {
+    family: "DejaVu Sans Mono"
+    fallback: "Liberation Mono"
+  }
+
+  let face    = #C0C0C0
+  let light   = #FFFFFF
+  let hilite  = #DFDFDF
+  let shadow  = #808080
+  let dark    = #000000
+  let navy    = #000080
+  let navy_hi = #1084D0
+
+  linear_gradient "title_bar" {
+    from: (0, 0)
+    to: (1, 0)
+    stop(0.0, @navy)
+    stop(1.0, @navy_hi)
+  }
+
+  // Reusable 3D caption button shell (geometry only, glyphs are drawn per instance)
+  def "caption_cell" {
+    rect { x: 0; y: 0; width: 22; height: 18; fill: @face; stroke: @dark; stroke_width: 1 }
+    rect { x: 0; y: 0; width: 21; height: 1; fill: @light }
+    rect { x: 0; y: 0; width: 1; height: 17; fill: @light }
+    rect { x: 21; y: 1; width: 1; height: 17; fill: @shadow }
+    rect { x: 1; y: 17; width: 21; height: 1; fill: @shadow }
+  }
+
+  // ---------------- Desktop window frame ----------------
+  rect "window" {
+    x: 100
+    y: 70
+    width: 760
+    height: 440
+    fill: @face
+    shadow(6, 6, 0, fade(#000000, 0.55))
+  }
+
+  rect { x: 100; y: 70; width: 760; height: 2; fill: @hilite }
+  rect { x: 100; y: 70; width: 2; height: 440; fill: @hilite }
+  rect { x: 100; y: 508; width: 760; height: 2; fill: @dark }
+  rect { x: 858; y: 70; width: 2; height: 440; fill: @dark }
+
+  rect "title_bar_bg" {
+    x: 103
+    y: 73
+    width: 754
+    height: 28
+    fill: @title_bar
+  }
+
+  // Window glyph
+  rect { x: 110; y: 78; width: 18; height: 14; fill: @face; stroke: @dark; stroke_width: 1 }
+  rect { x: 114; y: 81; width: 10; height: 8; fill: #008080 }
+  rect { x: 115; y: 94; width: 8; height: 2; fill: @face }
+  rect { x: 112; y: 96; width: 14; height: 2; fill: @face; stroke: @dark; stroke_width: 1 }
+
+  text "window_title" {
+    at: (134, 87)
+    content: "My Computer"
+    size: 13
+    weight: bold
+    fill: @light
+  }
+
+  // Caption buttons through reusable components
+  use "btn_min" { target: @caption_cell; at: (782, 78) }
+  use "btn_max" { target: @caption_cell; at: (808, 78) }
+  use "btn_close" { target: @caption_cell; at: (834, 78) }
+
+  rect { x: 788; y: 90; width: 10; height: 2; fill: @dark }
+  rect { x: 814; y: 83; width: 10; height: 9; fill: @face; stroke: @dark; stroke_width: 1 }
+  rect { x: 814; y: 83; width: 10; height: 2; fill: @navy }
+  line { from: (841, 83); to: (849, 91); stroke: @dark; stroke_width: 2; cap: butt }
+  line { from: (849, 83); to: (841, 91); stroke: @dark; stroke_width: 2; cap: butt }
+
+  // ---------------- Menu bar via stack auto-layout ----------------
+  rect { x: 103; y: 101; width: 754; height: 22; fill: @face }
+  stack "menu_items" {
+    x: 110
+    y: 105
+    gap: 14
+    direction: horizontal
+    text { at: (0, 0); content: "File"; size: 12; weight: 400; fill: @dark }
+    text { at: (0, 0); content: "Edit"; size: 12; weight: 400; fill: @dark }
+    text { at: (0, 0); content: "View"; size: 12; weight: 400; fill: @dark }
+    text { at: (0, 0); content: "Help"; size: 12; weight: 400; fill: @dark }
+  }
+  rect { x: 103; y: 122; width: 754; height: 1; fill: @shadow }
+  rect { x: 103; y: 123; width: 754; height: 1; fill: @light }
+
+  // ---------------- Toolbar ----------------
+  rect { x: 103; y: 124; width: 754; height: 33; fill: @face }
+
+  rect { x: 108; y: 127; width: 30; height: 27; fill: @face }
+  rect { x: 108; y: 127; width: 30; height: 1; fill: @light }
+  rect { x: 108; y: 127; width: 1; height: 27; fill: @light }
+  rect { x: 137; y: 128; width: 1; height: 26; fill: @shadow }
+  rect { x: 109; y: 153; width: 29; height: 1; fill: @shadow }
+  polygon { points: [(126, 133), (126, 146), (117, 140)]; fill: @dark }
+
+  rect { x: 141; y: 127; width: 30; height: 27; fill: @face }
+  rect { x: 141; y: 127; width: 30; height: 1; fill: @light }
+  rect { x: 141; y: 127; width: 1; height: 27; fill: @light }
+  rect { x: 170; y: 128; width: 1; height: 26; fill: @shadow }
+  rect { x: 142; y: 153; width: 29; height: 1; fill: @shadow }
+  polygon { points: [(146, 133), (146, 146), (155, 140)]; fill: @shadow }
+
+  rect { x: 174; y: 127; width: 30; height: 27; fill: @face }
+  rect { x: 174; y: 127; width: 30; height: 1; fill: @light }
+  rect { x: 174; y: 127; width: 1; height: 27; fill: @light }
+  rect { x: 203; y: 128; width: 1; height: 26; fill: @shadow }
+  rect { x: 175; y: 153; width: 29; height: 1; fill: @shadow }
+  path "icon_folder_up" {
+    move(182, 140)
+    line(182, 136)
+    line(187, 136)
+    line(189, 138)
+    line(196, 138)
+    line(196, 147)
+    line(182, 147)
+    close()
+    fill: #FFFF00
+    stroke: @dark
+    stroke_width: 1
+  }
+
+  // ---------------- Address bar ----------------
+  text { at: (110, 169); content: "Address"; size: 12; weight: 400; fill: @dark }
+  rect { x: 166; y: 159; width: 680; height: 20; fill: @light }
+  rect { x: 166; y: 159; width: 680; height: 1; fill: @shadow }
+  rect { x: 166; y: 159; width: 1; height: 20; fill: @shadow }
+  rect { x: 166; y: 178; width: 680; height: 1; fill: @hilite }
+  rect { x: 845; y: 160; width: 1; height: 19; fill: @hilite }
+  text { at: (172, 169); content: "C:\\"; size: 12; weight: 400; font: "mono"; fill: @dark }
+
+  // Blinking caret: pulse() driven by evaluation time
+  rect "caret" {
+    x: 188
+    y: 163
+    width: 1
+    height: 12
+    fill: @dark
+    opacity: pulse(t, 1.4)
+  }
+
+  // ---------------- Content pane ----------------
+  rect { x: 104; y: 184; width: 752; height: 300; fill: @light }
+  rect { x: 104; y: 184; width: 752; height: 1; fill: @shadow }
+  rect { x: 104; y: 184; width: 1; height: 300; fill: @shadow }
+  rect { x: 104; y: 483; width: 752; height: 1; fill: @hilite }
+  rect { x: 855; y: 185; width: 1; height: 299; fill: @hilite }
+
+  // Desktop items arranged by the grid auto-layout container
+  grid "desktop_icons" {
+    x: 170
+    y: 214
+    cols: 5
+    gap: 16
+
+    group "icon_computer" {
+      rect { x: -35; y: 0; width: 114; height: 1; fill: fade(#000000, 0.0) }
+      boolean "monitor_body" {
+        op: union
+        fill: @face
+        stroke: @dark
+        stroke_width: 1
+        rect { x: 0; y: 0; width: 46; height: 36 }
+        rect { x: 8; y: 34; width: 30; height: 8 }
+      }
+      rect { x: 5; y: 5; width: 36; height: 24; fill: #008080 }
+      text { at: (23, 68); content: "My Computer"; size: 12; weight: 400; align: center; fill: @dark }
+    }
+
+    group "icon_floppy" {
+      rect { x: -35; y: 0; width: 114; height: 1; fill: fade(#000000, 0.0) }
+      rect { x: 0; y: 0; width: 44; height: 44; fill: @face; stroke: @dark; stroke_width: 1 }
+      rect { x: 8; y: 0; width: 26; height: 16; fill: @shadow; stroke: @dark; stroke_width: 1 }
+      rect { x: 18; y: 2; width: 6; height: 12; fill: @face; stroke: @dark; stroke_width: 1 }
+      rect { x: 8; y: 24; width: 28; height: 16; fill: @light; stroke: @dark; stroke_width: 1 }
+      line { from: (12, 29); to: (32, 29); stroke: @shadow; stroke_width: 1 }
+      line { from: (12, 33); to: (32, 33); stroke: @shadow; stroke_width: 1 }
+      text { at: (22, 68); content: "3.5 Floppy (A:)"; size: 12; weight: 400; align: center; fill: @dark }
+    }
+
+    group "icon_disk" {
+      rect { x: -35; y: 0; width: 114; height: 1; fill: fade(#000000, 0.0) }
+      rect { x: 0; y: 6; width: 48; height: 30; fill: @face; stroke: @dark; stroke_width: 1 }
+      rect { x: 4; y: 10; width: 40; height: 6; fill: @hilite; stroke: @dark; stroke_width: 1 }
+      rect { x: 4; y: 22; width: 28; height: 3; fill: @shadow }
+      circle { center: (39, 29); radius: 2; fill: #00FF00 }
+      text { at: (24, 68); content: "Local Disk (C:)"; size: 12; weight: 400; align: center; fill: @dark }
+    }
+
+    group "icon_control" {
+      rect { x: -35; y: 0; width: 114; height: 1; fill: fade(#000000, 0.0) }
+      rect { x: 0; y: 0; width: 50; height: 40; fill: @face; stroke: @dark; stroke_width: 1 }
+      rect { x: 0; y: 0; width: 50; height: 6; fill: @navy }
+      circle { center: (10, 19); radius: 5; fill: #FF0000; stroke: @dark; stroke_width: 1 }
+      circle { center: (26, 19); radius: 5; fill: #00A000; stroke: @dark; stroke_width: 1 }
+      circle { center: (42, 19); radius: 5; fill: #0000C0; stroke: @dark; stroke_width: 1 }
+      rect { x: 7; y: 30; width: 36; height: 4; fill: @shadow }
+      text { at: (25, 68); content: "Control Panel"; size: 12; weight: 400; align: center; fill: @dark }
+    }
+
+    group "icon_recycle" {
+      rect { x: -35; y: 0; width: 114; height: 1; fill: fade(#000000, 0.0) }
+      path "bin_body" {
+        move(6, 12)
+        line(38, 12)
+        line(35, 44)
+        line(9, 44)
+        close()
+        fill: @face
+        stroke: @dark
+        stroke_width: 1
+      }
+      rect { x: 4; y: 8; width: 36; height: 4; fill: @hilite; stroke: @dark; stroke_width: 1 }
+      rect { x: 16; y: 4; width: 12; height: 4; fill: @face; stroke: @dark; stroke_width: 1 }
+      polyline { points: [(15, 20), (22, 16), (29, 20)]; stroke: #008080; stroke_width: 2; cap: butt }
+      polyline { points: [(15, 28), (22, 24), (29, 28)]; stroke: #008080; stroke_width: 2; cap: butt }
+      text { at: (22, 68); content: "Recycle Bin"; size: 12; weight: 400; align: center; fill: @dark }
+    }
+  }
+
+  // Relational selection marquee anchored to the laid-out group bbox
+  rect "selection" {
+    x: @icon_computer.left - 7
+    y: @icon_computer.top - 6
+    width: @icon_computer.width + 14
+    height: @icon_computer.height + 12
+    fill: fade(#000080, 0.06)
+    stroke: @navy
+    stroke_width: 1
+    dash: [2, 2]
+    dash_offset: -t * 8
+  }
+
+  // ---------------- Status bar ----------------
+  rect { x: 104; y: 486; width: 752; height: 22; fill: @face }
+  rect { x: 104; y: 486; width: 752; height: 1; fill: @hilite }
+
+  rect { x: 108; y: 490; width: 220; height: 15; fill: @face }
+  rect { x: 108; y: 490; width: 220; height: 1; fill: @shadow }
+  rect { x: 108; y: 490; width: 1; height: 15; fill: @shadow }
+  rect { x: 108; y: 504; width: 220; height: 1; fill: @light }
+  rect { x: 327; y: 491; width: 1; height: 14; fill: @light }
+  text { at: (114, 497); content: "5 object(s)"; size: 11; weight: 400; fill: @dark }
+
+  rect { x: 332; y: 490; width: 120; height: 15; fill: @face }
+  rect { x: 332; y: 490; width: 120; height: 1; fill: @shadow }
+  rect { x: 332; y: 490; width: 1; height: 15; fill: @shadow }
+  rect { x: 332; y: 504; width: 120; height: 1; fill: @light }
+  rect { x: 451; y: 491; width: 1; height: 14; fill: @light }
+  text { at: (338, 497); content: "1.44 MB"; size: 11; weight: 400; fill: @dark }
+
+  rect { x: 456; y: 490; width: 396; height: 15; fill: @face }
+  rect { x: 456; y: 490; width: 396; height: 1; fill: @shadow }
+  rect { x: 456; y: 490; width: 1; height: 15; fill: @shadow }
+  rect { x: 456; y: 504; width: 396; height: 1; fill: @light }
+  text { at: (462, 497); content: "My Computer"; size: 11; weight: 400; fill: @dark }
+
+  // Resize grip drawn by repeat(i)
+  repeat "resize_grip" {
+    count: 3
+    line {
+      from: (843 + i * 4, 505)
+      to: (849 + i * 4, 499)
+      stroke: @shadow
+      stroke_width: 1
+      cap: butt
+    }
+  }
+
+  // ---------------- Taskbar ----------------
+  rect { x: 0; y: 560; width: 960; height: 40; fill: @face }
+  rect { x: 0; y: 560; width: 960; height: 1; fill: @light }
+  rect { x: 0; y: 561; width: 960; height: 1; fill: @hilite }
+
+  rect { x: 4; y: 564; width: 92; height: 32; fill: @face }
+  rect { x: 4; y: 564; width: 92; height: 1; fill: @light }
+  rect { x: 4; y: 564; width: 1; height: 32; fill: @light }
+  rect { x: 95; y: 565; width: 1; height: 31; fill: @shadow }
+  rect { x: 5; y: 594; width: 91; height: 1; fill: @shadow }
+  rect { x: 5; y: 595; width: 91; height: 1; fill: @dark }
+  rect { x: 95; y: 565; width: 1; height: 31; fill: @dark }
+
+  polygon { points: [(13, 573), (25, 570), (25, 580), (13, 583)]; fill: #FF0000; stroke: @dark; stroke_width: 1 }
+  polygon { points: [(26, 570), (38, 567), (38, 577), (26, 580)]; fill: #00A000; stroke: @dark; stroke_width: 1 }
+  polygon { points: [(13, 584), (25, 581), (25, 591), (13, 594)]; fill: #0000C0; stroke: @dark; stroke_width: 1 }
+  polygon { points: [(26, 581), (38, 578), (38, 588), (26, 591)]; fill: #FFC000; stroke: @dark; stroke_width: 1 }
+
+  text { at: (44, 580); content: "Start"; size: 15; weight: bold; fill: @dark }
+
+  rect { x: 108; y: 565; width: 200; height: 30; fill: @face }
+  rect { x: 108; y: 565; width: 200; height: 1; fill: @shadow }
+  rect { x: 108; y: 565; width: 1; height: 30; fill: @shadow }
+  rect { x: 108; y: 594; width: 200; height: 1; fill: @light }
+  rect { x: 307; y: 566; width: 1; height: 29; fill: @light }
+  rect { x: 117; y: 574; width: 12; height: 10; fill: @face; stroke: @dark; stroke_width: 1 }
+  text { at: (137, 581); content: "My Computer"; size: 12; weight: 400; fill: @dark }
+
+  rect { x: 312; y: 565; width: 180; height: 30; fill: @face }
+  rect { x: 312; y: 565; width: 180; height: 1; fill: @light }
+  rect { x: 312; y: 565; width: 1; height: 30; fill: @light }
+  rect { x: 491; y: 566; width: 1; height: 29; fill: @shadow }
+  rect { x: 313; y: 594; width: 179; height: 1; fill: @shadow }
+  text { at: (322, 581); content: "Inbox - 2 New Messages"; size: 12; weight: 400; fill: @dark }
+
+  rect { x: 800; y: 564; width: 156; height: 32; fill: @face }
+  rect { x: 800; y: 564; width: 156; height: 1; fill: @shadow }
+  rect { x: 800; y: 564; width: 1; height: 32; fill: @shadow }
+  rect { x: 800; y: 595; width: 156; height: 1; fill: @light }
+  rect { x: 955; y: 565; width: 1; height: 31; fill: @light }
+
+  polygon { points: [(808, 577), (814, 577), (820, 572), (820, 588), (814, 583), (808, 583)]; fill: @face; stroke: @dark; stroke_width: 1 }
+  polyline { points: [(823, 575), (826, 580), (823, 585)]; stroke: @dark; stroke_width: 1; cap: butt }
+  polyline { points: [(827, 572), (831, 580), (827, 588)]; stroke: @dark; stroke_width: 1; cap: butt }
+
+  text { at: (842, 581); content: "12:00 PM"; size: 12; weight: 400; fill: @dark }
+}

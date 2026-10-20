@@ -1,0 +1,158 @@
+// Example 1: Aurora Dashboard Card (.mesh v1.0.0)
+// Demonstrates: diffusion_gradient, perceptual OKLCH, inner stroke alignment,
+// SDF boolean subtraction & smooth_union, Catmull-Rom spline, and @id relational anchors.
+
+mesh "aurora_dashboard" {
+  canvas {
+    width: 800
+    height: 480
+    background: oklch(0.13, 0.02, 260)
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  let pad = width * 0.075
+
+  diffusion_gradient "aurora_surface" {
+    point(0.12, 0.18, oklch(0.58, 0.22, 305), weight: 1.5)
+    point(0.88, 0.22, oklch(0.64, 0.19, 205), weight: 1.3)
+    point(0.52, 0.86, oklch(0.55, 0.21, 155), weight: 1.4)
+    point(0.18, 0.82, oklch(0.22, 0.06, 265), weight: 1.2)
+  }
+
+  linear_gradient "wave_stroke" {
+    from: (0.0, 0.5)
+    to: (1.0, 0.5)
+    stop(0.0, oklch(0.88, 0.16, 195))
+    stop(0.5, oklch(0.95, 0.08, 140))
+    stop(1.0, oklch(0.85, 0.18, 310))
+  }
+
+  rect "card" {
+    x: pad
+    y: pad
+    width: width - pad * 2
+    height: height - pad * 2
+    radius: 28
+    fill: @aurora_surface
+    stroke: oklch(0.94, 0.03, 230, 0.45)
+    stroke_width: 4
+    stroke_align: inner
+    shadow: (0, 18, 36, oklch(0.04, 0.01, 260, 0.75))
+  }
+
+  // Relational header bar anchored inside @card
+  rect "header_pill" {
+    x: @card.left + 32
+    y: @card.top + 28
+    width: 240
+    height: 40
+    radius: 20
+    fill: oklch(0.16, 0.03, 260, 0.68)
+    stroke: oklch(0.85, 0.10, 210, 0.50)
+    stroke_width: 2
+    stroke_align: inner
+  }
+
+  text "header_title" {
+    at: @header_pill.center
+    content: "MESH ENGINE V1.0"
+    size: 16
+    align: center
+    letter_spacing: 2
+    fill: oklch(0.96, 0.02, 220)
+  }
+
+  // SDF Boolean crescent emblem anchored to @card.top_right
+  boolean "crescent_badge" {
+    op: subtract
+    fill: oklch(0.92, 0.15, 85)
+    glow: (14, oklch(0.88, 0.18, 85, 0.55))
+    circle "outer_orb" {
+      center: @card.top_right + (-52, 48)
+      radius: 24
+    }
+    circle "inner_cut" {
+      center: @card.top_right + (-43, 41)
+      radius: 15
+    }
+  }
+
+  // Centripetal Catmull-Rom Spline passing directly through control points
+  spline "telemetry_wave" {
+    points: [
+      (@card.left + 40,  @card.center_y + 55),
+      (@card.left + 165, @card.center_y - 15),
+      (@card.left + 295, @card.center_y + 38),
+      (@card.center_x + 45, @card.center_y - 52),
+      (@card.right - 150, @card.center_y + 18),
+      (@card.right - 40,  @card.center_y - 35)
+    ]
+    tension: 0.5
+    stroke: @wave_stroke
+    stroke_width: 5
+    cap: round
+    glow: (12, oklch(0.85, 0.16, 185, 0.55))
+  }
+
+  // Metric cards anchored relative to @card.bottom_left
+  rect "stat_1" {
+    x: @card.left + 32
+    y: @card.bottom - 104
+    width: 185
+    height: 72
+    radius: 16
+    fill: oklch(0.14, 0.03, 260, 0.65)
+    stroke: oklch(0.85, 0.08, 200, 0.35)
+    stroke_width: 2
+    stroke_align: inner
+  }
+
+  text "stat_1_val" {
+    at: @stat_1.center
+    content: "OKLCH + SDF"
+    size: 18
+    align: center
+    fill: oklch(0.96, 0.02, 200)
+  }
+
+  rect "stat_2" {
+    x: @stat_1.right + 20
+    y: @stat_1.top
+    width: 185
+    height: 72
+    radius: 16
+    fill: oklch(0.14, 0.03, 260, 0.65)
+    stroke: oklch(0.85, 0.08, 155, 0.35)
+    stroke_width: 2
+    stroke_align: inner
+  }
+
+  text "stat_2_val" {
+    at: @stat_2.center
+    content: "ZERO DOM"
+    size: 18
+    align: center
+    fill: oklch(0.94, 0.08, 155)
+  }
+
+  rect "stat_3" {
+    x: @stat_2.right + 20
+    y: @stat_1.top
+    width: 210
+    height: 72
+    radius: 16
+    fill: oklch(0.14, 0.03, 260, 0.65)
+    stroke: oklch(0.85, 0.08, 305, 0.35)
+    stroke_width: 2
+    stroke_align: inner
+  }
+
+  text "stat_3_val" {
+    at: @stat_3.center
+    content: "AI CONSTRAINT"
+    size: 18
+    align: center
+    fill: oklch(0.94, 0.08, 305)
+  }
+}

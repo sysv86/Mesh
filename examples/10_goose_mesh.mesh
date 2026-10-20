@@ -1,0 +1,2229 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// GOOSE / STUDIO 04 — Mesh format duel (Artist A)
+// A late-night engineering studio: one handsome goose, five MacBooks, warm lamp,
+// cold screens, rain-washed city window. 1600x1000. Animated, self-contained.
+// ─────────────────────────────────────────────────────────────────────────────
+
+mesh "goose_macbooks" {
+  canvas {
+    width: 1600
+    height: 1000
+    background: #07111A
+    font_family: "DejaVu Sans"
+    font_fallback: "DejaVu Sans Mono"
+  }
+
+  font "sans" { family: "DejaVu Sans"; fallback: "DejaVu Sans Mono" }
+  font "mono" { family: "DejaVu Sans Mono"; fallback: "DejaVu Sans" }
+
+  let ink       = #07111A
+  let teal_deep = #0E2A33
+  let alu       = #C9D6E0
+  let amber     = #FFB45C
+  let beak_col  = #F28A3D
+  let ivory     = #F4EEE3
+  let cyan      = #65D9FF
+  let lime      = #B8F26A
+
+  // ── Motion primitives ──────────────────────────────────────────────────────
+  let bob      = oscillate(t, 0.22, -2.4, 2.4, 30)      // body breathing bob
+  let tilt     = oscillate(t, 0.11, -2.6, 2.6, 200)     // slow head tilt (deg)
+  let tc       = cos(tilt)
+  let ts       = sin(tilt)
+  let hx       = 826
+  let hy       = 350
+  let mtx      = hx - hx * tc + hy * ts
+  let mty      = hy - hx * ts - hy * tc + bob
+  let blinkraw = abs(wave(t, 0.32, -90)) * 9.0
+  let blink    = clamp(blinkraw, 0.0, 1.0)
+  let breath   = 0.5 + 0.5 * wave(t, 0.22, 30)
+  let lume     = 0.72 + 0.28 * wave(t, 0.18, 40)
+  let sway     = oscillate(t, 0.16, -1.5, 1.5, 140)
+
+  // ── Palette surfaces ───────────────────────────────────────────────────────
+  diffusion_gradient "studio_wall" {
+    point(0.04, 0.10, #0B2730, weight: 1.7)
+    point(0.34, 0.22, #0E2A33, weight: 1.25)
+    point(0.62, 0.08, #11343D, weight: 1.0)
+    point(0.92, 0.36, #061820, weight: 1.4)
+    point(0.16, 0.70, #050E14, weight: 1.6)
+    point(0.58, 0.88, #07141B, weight: 1.15)
+  }
+
+  radial_gradient "cool_ambient" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#4FC8E8, 0.16))
+    stop(0.45, fade(#2A8CA8, 0.07))
+    stop(1.0, fade(#07111A, 0.0))
+  }
+
+  radial_gradient "warm_ambient" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#FFB45C, 0.15))
+    stop(0.42, fade(#B96A2C, 0.06))
+    stop(1.0, fade(#07111A, 0.0))
+  }
+
+  radial_gradient "halo_goose" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#B9E9F2, 0.10))
+    stop(0.55, fade(#4B95A6, 0.045))
+    stop(1.0, fade(#07111A, 0.0))
+  }
+
+  linear_gradient "desk_wood" {
+    from: (0.15, 0.0)
+    to: (0.55, 1.0)
+    stop(0.0, #39251C)
+    stop(0.22, #2A1A14)
+    stop(0.62, #190F0C)
+    stop(1.0, #0B0706)
+  }
+
+  linear_gradient "shelf_wood" {
+    angle: 96
+    stop(0.0, #43291D)
+    stop(0.35, #2C1A13)
+    stop(1.0, #150D09)
+  }
+
+  linear_gradient "alu_face" {
+    angle: 104
+    stop(0.0, #F0F6FA)
+    stop(0.30, #D6E1E8)
+    stop(0.62, #AEBDC8)
+    stop(0.86, #8998A3)
+    stop(1.0, #C4D0D8)
+  }
+
+  linear_gradient "alu_edge" {
+    angle: 90
+    stop(0.0, #F7FBFD)
+    stop(0.18, #C9D6E0)
+    stop(0.55, #7E8D98)
+    stop(1.0, #3E4951)
+  }
+
+  linear_gradient "alu_dark" {
+    angle: 100
+    stop(0.0, #A9B8C3)
+    stop(0.45, #6E7D88)
+    stop(1.0, #3D474F)
+  }
+
+  linear_gradient "screen_ink" {
+    angle: 115
+    stop(0.0, #0A1B25)
+    stop(0.42, #061119)
+    stop(1.0, #02080C)
+  }
+
+  linear_gradient "goose_body" {
+    from: (0.42, 0.0)
+    to: (0.58, 1.0)
+    stop(0.0, #FFFDF7)
+    stop(0.28, #F8F1E5)
+    stop(0.62, #E9DDCA)
+    stop(0.86, #D2C1AB)
+    stop(1.0, #B7A48E)
+  }
+
+  linear_gradient "goose_neck" {
+    from: (0.20, 0.0)
+    to: (0.78, 1.0)
+    stop(0.0, #FFFDF8)
+    stop(0.36, #F7EFE2)
+    stop(0.74, #E2D4C0)
+    stop(1.0, #C3B09A)
+  }
+
+  linear_gradient "goose_wing" {
+    from: (0.10, 0.0)
+    to: (0.62, 1.0)
+    stop(0.0, #FBF4E7)
+    stop(0.36, #EADDC9)
+    stop(0.72, #D2BFA7)
+    stop(1.0, #AE9780)
+  }
+
+  linear_gradient "beak_grad" {
+    from: (0.0, 0.2)
+    to: (1.0, 0.8)
+    stop(0.0, #FFC078)
+    stop(0.34, #F79A4C)
+    stop(0.72, #ED7F35)
+    stop(1.0, #C85E22)
+  }
+
+  linear_gradient "rim_goose" {
+    from: (0.0, 0.5)
+    to: (1.0, 0.5)
+    stop(0.0, fade(#FFD7A1, 0.98))
+    stop(0.42, fade(#FFF7E9, 0.62))
+    stop(0.72, fade(#A9ECFF, 0.62))
+    stop(1.0, fade(#65D9FF, 0.72))
+  }
+
+  radial_gradient "shadow_soft" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#000000, 0.58))
+    stop(0.55, fade(#000000, 0.30))
+    stop(1.0, fade(#000000, 0.0))
+  }
+
+  radial_gradient "shadow_wide" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#000000, 0.42))
+    stop(0.60, fade(#000000, 0.16))
+    stop(1.0, fade(#000000, 0.0))
+  }
+
+  radial_gradient "screen_cyan_glow" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#65D9FF, 0.20))
+    stop(0.40, fade(#2E9EC4, 0.09))
+    stop(1.0, fade(#07111A, 0.0))
+  }
+
+  radial_gradient "screen_amber_glow" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#FFB45C, 0.18))
+    stop(0.42, fade(#C2743A, 0.08))
+    stop(1.0, fade(#07111A, 0.0))
+  }
+
+  radial_gradient "screen_violet_glow" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#A78BFA, 0.18))
+    stop(0.42, fade(#6B5AB8, 0.08))
+    stop(1.0, fade(#07111A, 0.0))
+  }
+
+  radial_gradient "lamp_glow" {
+    center: (0.5, 0.5)
+    radius: 0.5
+    stop(0.0, fade(#FFD39A, 0.55))
+    stop(0.35, fade(#FFB45C, 0.20))
+    stop(1.0, fade(#FFB45C, 0.0))
+  }
+
+  linear_gradient "lamp_cone" {
+    from: (0.0, 0.0)
+    to: (0.55, 1.0)
+    stop(0.0, fade(#FFC27A, 0.20))
+    stop(0.40, fade(#FFB45C, 0.07))
+    stop(1.0, fade(#FFB45C, 0.0))
+  }
+
+  radial_gradient "moon_disc" {
+    center: (0.40, 0.35)
+    radius: 0.62
+    stop(0.0, #FFFDF0)
+    stop(0.42, #F6E7C6)
+    stop(0.78, #E4CDA2)
+    stop(1.0, #C8AC7C)
+  }
+
+  radial_gradient "bokeh_warm" {
+    center: (0.40, 0.38)
+    radius: 0.55
+    stop(0.0, fade(#FFD9A0, 0.50))
+    stop(0.55, fade(#FFB45C, 0.26))
+    stop(0.92, fade(#FFB45C, 0.04))
+    stop(1.0, fade(#FFB45C, 0.0))
+  }
+
+  radial_gradient "bokeh_cool" {
+    center: (0.40, 0.38)
+    radius: 0.55
+    stop(0.0, fade(#C8F4FF, 0.42))
+    stop(0.55, fade(#65D9FF, 0.20))
+    stop(0.92, fade(#65D9FF, 0.03))
+    stop(1.0, fade(#65D9FF, 0.0))
+  }
+
+  radial_gradient "bokeh_lime" {
+    center: (0.40, 0.38)
+    radius: 0.55
+    stop(0.0, fade(#E5FFC0, 0.34))
+    stop(0.55, fade(#B8F26A, 0.16))
+    stop(1.0, fade(#B8F26A, 0.0))
+  }
+
+  linear_gradient "window_sky" {
+    from: (0.2, 0.0)
+    to: (0.7, 1.0)
+    stop(0.0, #071C26)
+    stop(0.45, #0A2631)
+    stop(0.78, #0D303B)
+    stop(1.0, #143D46)
+  }
+
+  linear_gradient "city_far" {
+    angle: 90
+    stop(0.0, #0A222B)
+    stop(1.0, #06141A)
+  }
+
+  linear_gradient "glass_sheen" {
+    from: (0.0, 0.0)
+    to: (1.0, 1.0)
+    stop(0.0, fade(#FFFFFF, 0.0))
+    stop(0.48, fade(#BFEFFF, 0.05))
+    stop(0.58, fade(#E8FBFF, 0.09))
+    stop(1.0, fade(#FFFFFF, 0.0))
+  }
+
+  radial_gradient "vignette" {
+    center: (0.50, 0.44)
+    radius: 0.78
+    stop(0.0, fade(#02070A, 0.0))
+    stop(0.52, fade(#02070A, 0.04))
+    stop(0.78, fade(#02070A, 0.30))
+    stop(1.0, fade(#02070A, 0.66))
+  }
+
+  noise_gradient "wall_tooth" {
+    scale: 22
+    octaves: 4
+    persistence: 0.55
+    lacunarity: 2.1
+    seed: 41
+    grain: 0.012
+    stop(0.0, fade(#FFFFFF, 0.0))
+    stop(0.55, fade(#BFE7EF, 0.022))
+    stop(1.0, fade(#FFFFFF, 0.05))
+  }
+
+  noise_gradient "screen_tooth" {
+    scale: 2.2
+    octaves: 3
+    persistence: 0.5
+    seed: 12
+    grain: 0.035
+    stop(0.0, fade(#65D9FF, 0.018))
+    stop(1.0, fade(#FFFFFF, 0.045))
+  }
+
+  // ═══ BACKGROUND WALL ══════════════════════════════════════════════════════
+  rect { x: 0; y: 0; width: 1600; height: 1000; fill: @studio_wall }
+  ellipse { center: (1210, 330); radii: (520, 430); fill: @cool_ambient; blend: screen }
+  ellipse { center: (70, 610); radii: (430, 470); fill: @warm_ambient; blend: screen }
+  ellipse { center: (700, 370); radii: (360, 340); fill: @halo_goose; blend: screen }
+
+  // faint studio ring motif behind the goose
+  circle { center: (690, 362); radius: 292; fill: none; stroke: fade(#9FD4DE, 0.085); stroke_width: 1.5 }
+  circle { center: (690, 362); radius: 252; fill: none; stroke: fade(#9FD4DE, 0.045); stroke_width: 1; dash: [2, 7] }
+  repeat "ring_ticks" {
+    count: 36
+    pivot: (690, 362)
+    step_rotate: 10
+    line { from: (690, 72); to: (690, 64); stroke: fade(#BFE7EF, 0.10); stroke_width: 1.2 }
+  }
+
+  // wall panel seams
+  repeat "wall_seams" {
+    count: 8
+    line { from: (i * 200 + 40, 0); to: (i * 200 + 40, 646); stroke: fade(#0A1A21, 0.55); stroke_width: 1 }
+  }
+  rect { x: 0; y: 636; width: 1600; height: 22; fill: fade(#02080C, 0.30) }
+  rect { x: 0; y: 636; width: 1600; height: 1; fill: fade(#7FB3BE, 0.10) }
+
+  // ═══ WINDOW / NIGHT CITY ══════════════════════════════════════════════════
+  // frame
+  rect "win_frame" {
+    x: 946
+    y: 54
+    width: 622
+    height: 562
+    radius: 12
+    fill: #18262B
+    stroke: fade(#DCE9F0, 0.34)
+    stroke_width: 1.5
+    stroke_align: inner
+    shadow: (0, 18, 42, fade(#000000, 0.50))
+  }
+  rect "win_glass" { x: 960; y: 68; width: 594; height: 534; radius: 5; fill: @window_sky }
+
+  // night sky wash
+  ellipse { center: (1300, 200); radii: (320, 180); fill: fade(#4FB9D6, 0.07); blend: screen }
+  ellipse { center: (1120, 520); radii: (260, 120); fill: fade(#FFB45C, 0.05); blend: screen }
+
+  // moon
+  circle { center: (1444, 148); radius: 31; fill: @moon_disc; glow: (42, fade(#FFE3B0, 0.30)) }
+  circle { center: (1432, 140); radius: 6; fill: fade(#D8C39C, 0.30) }
+  circle { center: (1452, 158); radius: 4.2; fill: fade(#D8C39C, 0.24) }
+  circle { center: (1438, 162); radius: 3; fill: fade(#D8C39C, 0.20) }
+  ellipse { center: (1402, 194); radii: (74, 8); fill: fade(#0A2631, 0.34) }
+  ellipse { center: (1482, 188); radii: (44, 5); fill: fade(#0A2631, 0.30) }
+
+  // distant skyline
+  rect { x: 960; y: 470; width: 594; height: 132; fill: @city_far }
+  rect { x: 984; y: 404; width: 76; height: 190; fill: #0A2028 }
+  rect { x: 1006; y: 372; width: 34; height: 222; fill: #0B222A }
+  rect { x: 1066; y: 440; width: 92; height: 154; fill: #081B22 }
+  rect { x: 1112; y: 402; width: 30; height: 192; fill: #0A1F27 }
+  rect { x: 1160; y: 458; width: 118; height: 136; fill: #071920 }
+  rect { x: 1226; y: 386; width: 44; height: 208; fill: #0B222A }
+  rect { x: 1244; y: 358; width: 8; height: 30; fill: #0B222A }
+  rect { x: 1284; y: 430; width: 86; height: 164; fill: #081A21 }
+  rect { x: 1330; y: 396; width: 26; height: 198; fill: #0A1E26 }
+  rect { x: 1378; y: 462; width: 108; height: 132; fill: #07181F }
+  rect { x: 1452; y: 418; width: 62; height: 176; fill: #091D24 }
+  rect { x: 1494; y: 452; width: 60; height: 142; fill: #071820 }
+
+  // foreground towers and antennas
+  rect { x: 1032; y: 438; width: 26; height: 156; fill: #071820 }
+  rect { x: 1188; y: 414; width: 18; height: 180; fill: #091C24 }
+  rect { x: 1312; y: 470; width: 24; height: 124; fill: #07181F }
+  rect { x: 1402; y: 440; width: 20; height: 154; fill: #081A21 }
+  rect { x: 1512; y: 426; width: 32; height: 168; fill: #07171E }
+  line { from: (1248, 358); to: (1248, 300); stroke: fade(#9FC8D2, 0.25); stroke_width: 2 }
+  line { from: (1078, 380); to: (1078, 336); stroke: fade(#9FC8D2, 0.20); stroke_width: 1.5 }
+  line { from: (1343, 396); to: (1343, 350); stroke: fade(#9FC8D2, 0.18); stroke_width: 1.5 }
+  circle { center: (1248, 298); radius: 2.2; fill: #FF7B6B; opacity: 0.7 * lume; glow: (8, fade(#FF7B6B, 0.5)) }
+  circle { center: (1078, 334); radius: 1.6; fill: #FF7B6B; opacity: 0.5 * lume }
+  rect { x: 966; y: 564; width: 588; height: 38; fill: fade(#3D7A86, 0.14); blend: screen }
+  ellipse { center: (1270, 588); radii: (280, 26); fill: fade(#6FC6D8, 0.10); blend: screen }
+
+  // lit windows — a scatter of warm and cool
+  repeat "city_lights" {
+    count: 34
+    let col = i - floor(i / 8) * 8
+    let row = floor(i / 8)
+    let lx = 976 + col * 68 + (row - 2) * 9
+    let ly = 420 + row * 31
+    rect {
+      x: lx
+      y: ly
+      width: 5
+      height: 8
+      radius: 1
+      fill: mix(#FFC978, #8FE3F2, (col * 3 + row * 5) / 12.0)
+      opacity: 0.28 + 0.30 * abs(wave(t, 0.021 + row * 0.004, col * 47))
+    }
+  }
+
+  repeat "city_lights_2" {
+    count: 22
+    let col2 = i - floor(i / 6) * 6
+    let row2 = floor(i / 6)
+    let lx2 = 1008 + col2 * 83 + (row2 - 2) * 6
+    let ly2 = 468 + row2 * 22
+    rect {
+      x: lx2
+      y: ly2
+      width: 4
+      height: 6
+      radius: 1
+      fill: mix(#FFD79A, #7FD9EA, (col2 + row2) / 6.0)
+      opacity: 0.16 + 0.36 * abs(wave(t, 0.018 + col2 * 0.003, row2 * 61))
+    }
+  }
+
+  repeat "tower_grid_left" {
+    count: 24
+    let gc = i - floor(i / 6) * 6
+    let gr = floor(i / 6)
+    rect {
+      x: 992 + gc * 11
+      y: 424 + gr * 20
+      width: 4
+      height: 6
+      radius: 1
+      fill: mix(#FFD79A, #8FE3F2, gc / 6.0)
+      opacity: 0.12 + 0.30 * abs(wave(t, 0.02 + gr * 0.002, gc * 57))
+    }
+  }
+  repeat "tower_grid_right" {
+    count: 30
+    let gc2 = i - floor(i / 6) * 6
+    let gr2 = floor(i / 6)
+    rect {
+      x: 1180 + gc2 * 12
+      y: 476 + gr2 * 16
+      width: 4
+      height: 5
+      radius: 1
+      fill: mix(#FFD79A, #9FE8FF, gr2 / 5.0)
+      opacity: 0.10 + 0.28 * abs(wave(t, 0.018 + gc2 * 0.002, gr2 * 43))
+    }
+  }
+
+  // bokeh — slow drifting out-of-focus city lights
+  circle { center: (1024 + oscillate(t, 0.05, -8, 8), 314 + oscillate(t, 0.04, -5, 5, 90)); radius: 13; fill: @bokeh_warm; blend: screen }
+  circle { center: (1096 + oscillate(t, 0.045, -10, 10, 40), 268 + oscillate(t, 0.035, -6, 6)); radius: 16; fill: @bokeh_cool; blend: screen }
+  circle { center: (1188 + oscillate(t, 0.04, -7, 7, 120), 336 + oscillate(t, 0.05, -8, 8, 30)); radius: 17; fill: @bokeh_warm; blend: screen }
+  circle { center: (1268 + oscillate(t, 0.055, -9, 9, 200), 250 + oscillate(t, 0.03, -4, 4, 60)); radius: 11; fill: @bokeh_lime; blend: screen }
+  circle { center: (1350 + oscillate(t, 0.038, -6, 6, 70), 392 + oscillate(t, 0.045, -7, 7, 190)); radius: 11; fill: @bokeh_cool; blend: screen }
+  circle { center: (1460 + oscillate(t, 0.05, -8, 8, 150), 330 + oscillate(t, 0.04, -6, 6, 40)); radius: 15; fill: @bokeh_warm; blend: screen }
+  circle { center: (1512 + oscillate(t, 0.042, -5, 5, 220), 430 + oscillate(t, 0.05, -6, 6, 110)); radius: 9; fill: @bokeh_lime; blend: screen }
+  circle { center: (1150 + oscillate(t, 0.048, -6, 6, 10), 486 + oscillate(t, 0.035, -4, 4, 180)); radius: 7; fill: @bokeh_warm; blend: screen }
+  circle { center: (1408 + oscillate(t, 0.036, -7, 7, 250), 500 + oscillate(t, 0.05, -5, 5, 70)); radius: 12; fill: @bokeh_cool; blend: screen }
+
+  // glass sheen + mullions
+  polygon {
+    points: [(1000, 68), (1230, 68), (1050, 602), (960, 602)]
+    fill: @glass_sheen
+    opacity: 0.55
+    blend: screen
+  }
+  spline {
+    points: [(1012, 70), (1064, 150), (1092, 252), (1128, 352), (1180, 470), (1222, 600)]
+    tension: 0.5
+    stroke: fade(#DFF7FF, 0.10)
+    stroke_width: 2
+  }
+  repeat "rain" {
+    count: 10
+    line {
+      from: (978 + i * 61, 72)
+      to: (946 + i * 61, 598)
+      stroke: fade(#BFEFFF, 0.045)
+      stroke_width: 1.1
+      clip: @win_glass
+    }
+  }
+  line { from: (1030, 84); to: (1014, 250); stroke: fade(#DFF7FF, 0.07); stroke_width: 1.4; clip: @win_glass }
+  line { from: (1180, 300); to: (1154, 596); stroke: fade(#DFF7FF, 0.06); stroke_width: 1.2; clip: @win_glass }
+  line { from: (1390, 96); to: (1370, 334); stroke: fade(#DFF7FF, 0.05); stroke_width: 1.2; clip: @win_glass }
+  rect { x: 1250; y: 68; width: 11; height: 534; fill: #0A171C; stroke: fade(#D8E9F0, 0.16); stroke_width: 1 }
+  rect { x: 960; y: 332; width: 594; height: 9; fill: #0A171C; stroke: fade(#D8E9F0, 0.14); stroke_width: 1 }
+  rect { x: 946; y: 606; width: 622; height: 14; radius: 3; fill: #26343A; stroke: fade(#FFDFB6, 0.22); stroke_width: 1 }
+
+  // ═══ SHELF (top left) ══════════════════════════════════════════════════════
+  rect "shelf_slab" {
+    x: 156
+    y: 356
+    width: 440
+    height: 18
+    radius: 4
+    fill: @shelf_wood
+    stroke: fade(#FFC98C, 0.16)
+    stroke_width: 1
+    stroke_align: inner
+    shadow: (0, 10, 20, fade(#000000, 0.55))
+  }
+  rect { x: 160; y: 356; width: 432; height: 2; fill: fade(#F0C08A, 0.28) }
+  line { from: (176, 374); to: (176, 356); stroke: fade(#000000, 0.0); stroke_width: 0 }
+  polygon { points: [(196, 374), (228, 374), (228, 404), (196, 374)]; fill: fade(#1A100C, 0.9) }
+  polygon { points: [(520, 374), (552, 374), (552, 404), (520, 374)]; fill: fade(#1A100C, 0.9) }
+
+  // books on shelf
+  rect { x: 482; y: 300; width: 22; height: 56; radius: 2; fill: #314B49; stroke: fade(#A9D8D2, 0.20); stroke_width: 1 }
+  rect { x: 506; y: 288; width: 18; height: 68; radius: 2; fill: #6B4030; stroke: fade(#FFC27A, 0.20); stroke_width: 1 }
+  rect { x: 526; y: 306; width: 24; height: 50; radius: 2; fill: #243A46; stroke: fade(#B6E6F2, 0.18); stroke_width: 1 }
+  line { from: (486, 316); to: (486, 346); stroke: fade(#E9D7B0, 0.45); stroke_width: 1 }
+  line { from: (530, 318); to: (530, 344); stroke: fade(#CFEAF2, 0.35); stroke_width: 1 }
+  line { from: (510, 300); to: (520, 300); stroke: fade(#FFD7A1, 0.40); stroke_width: 1 }
+
+  // small potted plant on the shelf
+  path {
+    closed: true
+    fill: #22312F
+    stroke: fade(#B9D7C6, 0.16)
+    stroke_width: 1
+    move(186, 316)
+    line(224, 316)
+    line(218, 356)
+    line(192, 356)
+    close()
+  }
+  path { fill: none; stroke: #3E6B52; stroke_width: 3; cap: round; move(204, 318); cubic(198, 296, 206, 280, 214, 268) }
+  ellipse { center: (216, 270); radii: (18, 8); fill: #37624C; rotate: -28 }
+  ellipse { center: (196, 286); radii: (16, 7); fill: #2C5541; rotate: 34 }
+  ellipse { center: (222, 292); radii: (14, 6); fill: #47785A; rotate: -18 }
+  ellipse { center: (192, 300); radii: (13, 6); fill: #315C46; rotate: 48 }
+
+  // shelf MacBook (5th) — dim, deferred
+  rect { x: 252; y: 232; width: 206; height: 124; radius: 9; fill: @alu_dark; stroke: fade(#DCE9F0, 0.28); stroke_width: 1; shadow: (0, 8, 16, fade(#000000, 0.45)) }
+  rect "shelf_glass" { x: 260; y: 240; width: 190; height: 108; radius: 4; fill: #061219 }
+  text { at: (268, 252); baseline: true; align: left; content: "DEPLOY"; size: 6.5; font: "mono"; letter_spacing: 1.1; fill: #6FA2B0 }
+  text { at: (268, 267); baseline: true; align: left; content: "$ meshc build"; size: 6; font: "mono"; fill: #B8F26A }
+  text { at: (268, 279); baseline: true; align: left; content: "  tile 64x64"; size: 6; font: "mono"; fill: #7F9AA6 }
+  text { at: (268, 291); baseline: true; align: left; content: "  sdf ok"; size: 6; font: "mono"; fill: #65D9FF }
+  rect { x: 268; y: 306; width: 128; height: 5; radius: 2.5; fill: #122A33 }
+  rect { x: 268; y: 306; width: 104 * lume; height: 5; radius: 2.5; fill: #B8F26A; glow: (7, fade(#B8F26A, 0.6)) }
+  text { at: (404, 310); baseline: true; align: right; content: "83%"; size: 6; font: "mono"; fill: #B8F26A }
+  rect { x: 268; y: 322; width: 40; height: 9; radius: 2; fill: #0E2028; stroke: fade(#65D9FF, 0.30); stroke_width: 0.8 }
+  text { at: (274, 329); baseline: true; align: left; content: "BUILD"; size: 5.5; font: "mono"; fill: #65D9FF }
+  polygon { points: [(258, 356), (452, 356), (470, 380), (240, 380)]; fill: @alu_face; stroke: fade(#FFFFFF, 0.25); stroke_width: 1 }
+  rect { x: 240; y: 378; width: 230; height: 3; radius: 1.5; fill: #0B1418 }
+
+  // sticky notes
+  rect { x: 566; y: 162; width: 62; height: 58; radius: 2; fill: #D9A85E; rotate: -5; shadow: (2, 6, 10, fade(#000000, 0.35)) }
+  circle { center: (597, 168); radius: 3; fill: #2A1A12; opacity: 0.85 }
+  circle { center: (596, 167); radius: 1; fill: fade(#FFFFFF, 0.55) }
+  text { at: (578, 182); baseline: true; align: left; content: "SHIP"; size: 9; font: "mono"; fill: #45300F }
+  line { from: (578, 194); to: (612, 194); stroke: fade(#45300F, 0.55); stroke_width: 1.5 }
+  line { from: (578, 202); to: (604, 202); stroke: fade(#45300F, 0.45); stroke_width: 1.5 }
+  rect { x: 620; y: 148; width: 54; height: 52; radius: 2; fill: #A9D46A; rotate: 6; shadow: (2, 6, 10, fade(#000000, 0.35)) }
+  circle { center: (647, 154); radius: 3; fill: #2A1A12; opacity: 0.85 }
+  circle { center: (646, 153); radius: 1; fill: fade(#FFFFFF, 0.55) }
+  line { from: (630, 168); to: (660, 168); stroke: fade(#2B3A12, 0.55); stroke_width: 1.5 }
+  line { from: (630, 177); to: (654, 177); stroke: fade(#2B3A12, 0.45); stroke_width: 1.5 }
+  line { from: (630, 186); to: (646, 186); stroke: fade(#2B3A12, 0.40); stroke_width: 1.5 }
+  rect { x: 604; y: 212; width: 46; height: 44; radius: 2; fill: #6FB6C4; rotate: -9; shadow: (2, 6, 10, fade(#000000, 0.35)) }
+  circle { center: (627, 218); radius: 2.6; fill: #2A1A12; opacity: 0.85 }
+  circle { center: (628, 232); radius: 8; fill: none; stroke: fade(#EAFBFF, 0.75); stroke_width: 1.4 }
+  line { from: (628, 232); to: (628, 225); stroke: fade(#EAFBFF, 0.75); stroke_width: 1.4 }
+  line { from: (628, 232); to: (634, 235); stroke: fade(#EAFBFF, 0.75); stroke_width: 1.4 }
+
+  // wall clock — 02:14
+  circle { center: (480, 176); radius: 35; fill: #0A161C; stroke: fade(#C7A165, 0.75); stroke_width: 2; shadow: (0, 8, 16, fade(#000000, 0.45)) }
+  circle { center: (480, 176); radius: 29; fill: #071116; stroke: fade(#FFD7A1, 0.10); stroke_width: 1 }
+  repeat "clock_ticks" {
+    count: 12
+    pivot: (480, 176)
+    step_rotate: 30
+    line { from: (480, 150); to: (480, 146); stroke: fade(#D8C7A8, 0.45); stroke_width: 1.4 }
+  }
+  path { fill: none; stroke: #E8DAC4; stroke_width: 2.4; cap: round; center: (480, 176); rotate: 67; move(480, 176); line(480, 159) }
+  path { fill: none; stroke: #F4EEE3; stroke_width: 1.8; cap: round; center: (480, 176); rotate: 84; move(480, 176); line(480, 152) }
+  path { fill: none; stroke: #FFB45C; stroke_width: 1.2; cap: round; center: (480, 176); rotate: 6 * t + 24; move(480, 176); line(480, 148); opacity: 0.85 }
+  circle { center: (480, 176); radius: 3.2; fill: #C7A165 }
+  circle { center: (480, 176); radius: 1.4; fill: #2A1A0E }
+  text { at: (480, 204); size: 5.5; font: "mono"; align: center; content: "02:14"; letter_spacing: 1; fill: fade(#D8C7A8, 0.55) }
+
+  // trailing vine from the shelf
+  path { fill: none; stroke: #2E5A46; stroke_width: 2.2; cap: round; move(556, 378); cubic(566, 408, 552, 438, 566, 466); cubic(576, 486, 566, 502, 558, 514) }
+  ellipse { center: (562, 402); radii: (11, 5); fill: #35684F; rotate: 42; translate: (0, sway * 0.6) }
+  ellipse { center: (548, 430); radii: (10, 5); fill: #2C5944; rotate: -38; translate: (0, sway * 0.8) }
+  ellipse { center: (568, 456); radii: (11, 5); fill: #3B7056; rotate: 36; translate: (0, sway) }
+  ellipse { center: (554, 482); radii: (9, 4); fill: #2C5944; rotate: -30; translate: (0, sway * 1.1) }
+  ellipse { center: (560, 508); radii: (9, 4); fill: #35684F; rotate: 28; translate: (0, sway * 1.2) }
+
+  // ═══ DESK ═════════════════════════════════════════════════════════════════
+  polygon "desk_top" { points: [(0, 646), (1600, 646), (1600, 1000), (0, 1000)]; fill: @desk_wood; grain: 0.016 }
+  // atmospheric haze where desk meets wall
+  rect { x: 0; y: 646; width: 1600; height: 78; fill: fade(#0B222A, 0.35) }
+  ellipse { center: (560, 760); radii: (600, 180); fill: fade(#8FD6E4, 0.035); blend: screen }
+  ellipse { center: (190, 840); radii: (420, 220); fill: fade(#FFB45C, 0.05); blend: screen }
+
+  // wood grain
+  repeat "wood_grain" {
+    count: 13
+    let gy = 690 + i * 25
+    spline {
+      points: [
+        (0, gy + 4),
+        (240, gy - 3),
+        (520, gy + 5),
+        (820, gy - 2),
+        (1120, gy + 4),
+        (1380, gy - 3),
+        (1600, gy + 2)
+      ]
+      tension: 0.5
+      stroke: fade(#7B5138, 0.16)
+      stroke_width: 1.2
+    }
+  }
+  ellipse { center: (760, 905); radii: (44, 8); fill: none; stroke: fade(#7B5138, 0.20); stroke_width: 1.4 }
+  ellipse { center: (760, 905); radii: (20, 4); fill: none; stroke: fade(#7B5138, 0.16); stroke_width: 1.2 }
+  ellipse { center: (330, 978); radii: (36, 6); fill: none; stroke: fade(#7B5138, 0.13); stroke_width: 1.2 }
+
+  // screen reflections on the desk
+  ellipse { center: (1010, 936); radii: (330, 48); fill: @screen_cyan_glow; blend: screen; opacity: 0.95 }
+  ellipse { center: (1370, 806); radii: (220, 34); fill: @screen_violet_glow; blend: screen; opacity: 0.8 }
+  ellipse { center: (320, 806); radii: (200, 32); fill: @screen_cyan_glow; blend: screen; opacity: 0.45 }
+  ellipse { center: (250, 936); radii: (320, 64); fill: @warm_ambient; blend: screen; opacity: 0.75 }
+
+  // ═══ DESK LAMP (left edge) ════════════════════════════════════════════════
+  circle { center: (96, 400); radius: 190; fill: @lamp_glow; blend: screen; opacity: 0.34 }
+  ellipse { center: (74, 916); radii: (62, 14); fill: @shadow_soft }
+  ellipse { center: (74, 906); radii: (44, 11); fill: #1A2327; stroke: fade(#C9D6E0, 0.18); stroke_width: 1 }
+  rect { x: 60; y: 384; width: 7; height: 524; radius: 3; fill: #242E31; stroke: fade(#C9D6E0, 0.16); stroke_width: 1 }
+  line { from: (64, 388); to: (106, 342); stroke: #2C383B; stroke_width: 5; cap: round }
+  circle { center: (106, 342); radius: 7; fill: #3A474A; stroke: fade(#FFD7A1, 0.25); stroke_width: 1 }
+  path {
+    closed: true
+    fill: #1E2729
+    stroke: fade(#C9D6E0, 0.20)
+    stroke_width: 1
+    move(38, 326)
+    line(148, 326)
+    line(124, 410)
+    line(62, 410)
+    close()
+  }
+  path {
+    closed: true
+    fill: #303C3E
+    move(46, 330)
+    line(140, 330)
+    line(120, 372)
+    line(66, 372)
+    close()
+  }
+  ellipse { center: (94, 402); radii: (19, 8); fill: #FFE1B0; glow: (30, fade(#FFB45C, 0.8)) }
+  circle { center: (94, 410); radius: 9; fill: #FFF3D8; glow: (46, fade(#FFC27A, 0.7)); opacity: 0.88 + 0.08 * wave(t, 0.7, 20) }
+  polygon {
+    points: [(64, 412), (124, 412), (620, 1000), (0, 1000)]
+    fill: @lamp_cone
+    blend: screen
+    opacity: 0.85
+  }
+  ellipse { center: (300, 922); radii: (380, 94); fill: @lamp_glow; blend: screen; opacity: 0.78 }
+  circle { center: (96, 402); radius: 120; fill: @lamp_glow; blend: screen; opacity: 0.50 }
+  // warm wash picking out the left side of the studio
+  ellipse { center: (150, 560); radii: (260, 340); fill: fade(#FFB45C, 0.055); blend: screen }
+
+  // ═══ LEFT MACBOOK — analytics ═════════════════════════════════════════════
+  ellipse { center: (310, 792); radii: (200, 24); fill: @shadow_soft }
+  polygon { points: [(192, 700), (442, 700), (484, 790), (150, 790)]; fill: @alu_face; stroke: fade(#F7FBFD, 0.30); stroke_width: 1 }
+  polygon { points: [(206, 714), (430, 714), (458, 776), (180, 776)]; fill: #0A0F12; stroke: fade(#000000, 0.6); stroke_width: 1 }
+  repeat "left_keys" {
+    count: 44
+    let col = i - floor(i / 11) * 11
+    let row = floor(i / 11)
+    rect {
+      x: 214 + col * 19.4
+      y: 720 + row * 13
+      width: 16
+      height: 10
+      radius: 1.5
+      fill: #1B2227
+      stroke: fade(#3B4750, 0.55)
+      stroke_width: 0.8
+    }
+  }
+  polygon { points: [(206, 714), (430, 714), (458, 776), (180, 776)]; fill: fade(#65D9FF, 0.04); blend: screen }
+  rect { x: 244; y: 742; width: 16; height: 10; radius: 1.5; fill: #223038; stroke: fade(#B8F26A, 0.6); stroke_width: 0.8; glow: (5, fade(#B8F26A, 0.25)) }
+  rect { x: 300; y: 755; width: 16; height: 10; radius: 1.5; fill: #223038; stroke: fade(#65D9FF, 0.5); stroke_width: 0.8 }
+  polygon { points: [(150, 788), (484, 788), (486, 796), (148, 796)]; fill: @alu_edge }
+  line { from: (190, 789); to: (446, 789); stroke: fade(#FFFFFF, 0.30); stroke_width: 1 }
+
+  rect "left_bezel" {
+    x: 180
+    y: 438
+    width: 274
+    height: 264
+    radius: 12
+    fill: @alu_dark
+    stroke: fade(#EAF4F8, 0.32)
+    stroke_width: 1.2
+    stroke_align: inner
+    shadow: (0, 14, 28, fade(#000000, 0.45))
+  }
+  rect "left_glass" { x: 190; y: 448; width: 254; height: 244; radius: 4; fill: @screen_ink }
+  rect { x: 190; y: 448; width: 254; height: 244; radius: 4; fill: @screen_cyan_glow; opacity: 0.35; blend: screen }
+  // title bar
+  rect { x: 190; y: 448; width: 254; height: 20; fill: #0B1B23 }
+  circle { center: (200, 458); radius: 3; fill: #F26D5F; opacity: 0.7 }
+  circle { center: (210, 458); radius: 3; fill: #F2B35E; opacity: 0.7 }
+  circle { center: (220, 458); radius: 3; fill: #7ED07A; opacity: 0.7 }
+  text { at: (232, 461); baseline: true; align: left; content: "STUDIO / ANALYTICS"; size: 6.8; font: "mono"; letter_spacing: 0.9; fill: #7F9AA6 }
+  text { at: (434, 461); baseline: true; align: right; content: "LIVE"; size: 6.5; font: "mono"; fill: #B8F26A }
+  circle { center: (421, 455); radius: 1.8; fill: #B8F26A; opacity: 0.8 }
+
+  text { at: (200, 486); baseline: true; align: left; content: "WEEKLY THROUGHPUT"; size: 6; font: "mono"; letter_spacing: 0.8; fill: #4E6A74 }
+  text { at: (200, 514); baseline: true; align: left; content: "12.4k"; size: 26; font: "mono"; fill: #EAF6F8 }
+  text { at: (306, 512); baseline: true; align: left; content: "+18.2%"; size: 6.6; font: "mono"; fill: #B8F26A }
+  text { at: (200, 532); baseline: true; align: left; content: "renders shipped"; size: 6.5; font: "sans"; fill: #6D8792 }
+
+  // chart grid
+  repeat "left_grid" {
+    count: 3
+    line { from: (200, 552 + i * 24); to: (434, 552 + i * 24); stroke: fade(#5F8792, 0.16); stroke_width: 1; dash: [2, 4] }
+  }
+  // chart line
+  spline {
+    points: [
+      (204, 596 + oscillate(t, 0.32, -3, 3, 0)),
+      (236, 588 + oscillate(t, 0.32, -4, 4, 55)),
+      (266, 592 + oscillate(t, 0.32, -3, 3, 110)),
+      (296, 574 + oscillate(t, 0.32, -5, 5, 165)),
+      (326, 580 + oscillate(t, 0.32, -4, 4, 220)),
+      (356, 562 + oscillate(t, 0.32, -5, 5, 275)),
+      (388, 568 + oscillate(t, 0.32, -3, 3, 330)),
+      (426, 548 + oscillate(t, 0.32, -5, 5, 385))
+    ]
+    tension: 0.5
+    stroke: #65D9FF
+    stroke_width: 2
+    glow: (8, fade(#65D9FF, 0.45))
+  }
+  spline {
+    points: [(204, 610), (240, 604), (272, 614), (308, 598), (344, 606), (382, 592), (426, 600)]
+    tension: 0.5
+    stroke: fade(#6D8792, 0.45)
+    stroke_width: 1.2
+    dash: [3, 3]
+  }
+  circle { center: (426, 548 + oscillate(t, 0.32, -5, 5, 385)); radius: 2.6; fill: #EAF6F8; glow: (7, fade(#65D9FF, 0.7)) }
+
+  // bars
+  repeat "left_bars" {
+    count: 6
+    let bh = 14 + 26 * (0.5 + 0.5 * wave(t, 0.28, i * 52))
+    rect {
+      x: 200 + i * 39
+      y: 660 - bh
+      width: 22
+      height: bh
+      radius: 3
+      fill: mix(#2E9EC4, #B8F26A, i / 5.0)
+      opacity: 0.60
+    }
+    text { at: (211 + i * 39, 670); baseline: true; align: center; content: "M"; size: 4.5; font: "mono"; fill: #7F9AA6 }
+  }
+  line { from: (200, 661); to: (434, 661); stroke: fade(#9FC8D2, 0.20); stroke_width: 1 }
+
+  // footer ticker
+  rect { x: 190; y: 678; width: 254; height: 14; fill: #08151B }
+  text { at: (198, 688); baseline: true; align: left; content: "MESH / GOOSE-04"; size: 5.8; font: "mono"; letter_spacing: 0.8; fill: #5F8792 }
+  text { at: (434, 688); baseline: true; align: right; content: "02:14"; size: 5.8; font: "mono"; fill: #FFB45C }
+  // glass sheen
+  polygon { points: [(206, 448), (268, 448), (206, 560), (190, 560)]; fill: fade(#DFF7FF, 0.05); blend: screen }
+
+  // ═══ RIGHT MACBOOK — audio session ════════════════════════════════════════
+  ellipse { center: (1378, 788); radii: (210, 24); fill: @shadow_soft }
+  polygon { points: [(1270, 700), (1502, 700), (1544, 786), (1228, 786)]; fill: @alu_face; stroke: fade(#F7FBFD, 0.30); stroke_width: 1 }
+  polygon { points: [(1284, 714), (1490, 714), (1518, 772), (1256, 772)]; fill: #0A0F12; stroke: fade(#000000, 0.6); stroke_width: 1 }
+  repeat "right_keys" {
+    count: 44
+    let col = i - floor(i / 11) * 11
+    let row = floor(i / 11)
+    rect {
+      x: 1292 + col * 19
+      y: 720 + row * 13
+      width: 16
+      height: 10
+      radius: 1.5
+      fill: #1B2227
+      stroke: fade(#3B4750, 0.55)
+      stroke_width: 0.8
+    }
+  }
+  polygon { points: [(1284, 714), (1490, 714), (1518, 772), (1256, 772)]; fill: fade(#A78BFA, 0.05); blend: screen }
+  rect { x: 1330; y: 742; width: 16; height: 10; radius: 1.5; fill: #223038; stroke: fade(#FFB45C, 0.6); stroke_width: 0.8; glow: (5, fade(#FFB45C, 0.22)) }
+  rect { x: 1390; y: 755; width: 16; height: 10; radius: 1.5; fill: #223038; stroke: fade(#A78BFA, 0.55); stroke_width: 0.8 }
+  rect { x: 1428; y: 729; width: 16; height: 10; radius: 1.5; fill: #223038; stroke: fade(#65D9FF, 0.45); stroke_width: 0.8 }
+  polygon { points: [(1228, 784), (1544, 784), (1546, 792), (1226, 792)]; fill: @alu_edge }
+  line { from: (1268, 785); to: (1504, 785); stroke: fade(#FFFFFF, 0.30); stroke_width: 1 }
+
+  rect "right_bezel" {
+    x: 1258
+    y: 444
+    width: 254
+    height: 256
+    radius: 12
+    fill: @alu_dark
+    stroke: fade(#EAF4F8, 0.30)
+    stroke_width: 1.2
+    stroke_align: inner
+    shadow: (0, 14, 28, fade(#000000, 0.45))
+  }
+  rect "right_glass" { x: 1268; y: 454; width: 234; height: 236; radius: 4; fill: @screen_ink }
+  rect { x: 1268; y: 454; width: 234; height: 236; radius: 4; fill: @screen_violet_glow; opacity: 0.40; blend: screen }
+
+  rect { x: 1268; y: 454; width: 234; height: 20; fill: #0B1B23 }
+  circle { center: (1278, 464); radius: 3; fill: #F26D5F; opacity: 0.7 }
+  circle { center: (1288, 464); radius: 3; fill: #F2B35E; opacity: 0.7 }
+  circle { center: (1298, 464); radius: 3; fill: #7ED07A; opacity: 0.7 }
+  text { at: (1310, 467); baseline: true; align: left; content: "MIX / SESSION 07"; size: 6.8; font: "mono"; letter_spacing: 0.9; fill: #8D97B0 }
+  circle { center: (1470, 461); radius: 2; fill: #FFB45C; opacity: 0.9 }
+  text { at: (1492, 467); baseline: true; align: right; content: "REC"; size: 6.2; font: "mono"; fill: #FFB45C }
+
+  text { at: (1278, 490); baseline: true; align: left; content: "02:14:08:12"; size: 15; font: "mono"; fill: #EAF6F8 }
+  text { at: (1278, 502); baseline: true; align: left; content: "TAKE 04 / 48kHz"; size: 5.8; font: "mono"; letter_spacing: 0.7; fill: #6D8792 }
+
+  // waveform
+  repeat "right_wave" {
+    count: 36
+    let wh = 4 + 34 * abs(wave(t, 0.22, i * 19 + 30))
+    rect {
+      x: 1278 + i * 6.2
+      y: 552 - wh * 0.5
+      width: 3.2
+      height: wh
+      radius: 1.6
+      fill: mix(#A78BFA, #FFB45C, i / 35.0)
+      opacity: 0.82
+    }
+  }
+  line { from: (1278, 552); to: (1492, 552); stroke: fade(#DCE9F0, 0.12); stroke_width: 1 }
+  line { from: (1385, 528); to: (1385, 576); stroke: fade(#FFB45C, 0.65); stroke_width: 1; dash: [3, 3] }
+
+  // track rows
+  rect { x: 1278; y: 584; width: 212; height: 26; radius: 3; fill: fade(#A78BFA, 0.09) }
+  text { at: (1284, 597); baseline: true; align: left; content: "NECK"; size: 5.8; font: "mono"; fill: #C9B8FF }
+  rect { x: 1320; y: 592; width: 124; height: 4; radius: 2; fill: #2A2A3C }
+  rect { x: 1320 + 16 * lume; y: 590; width: 18; height: 8; radius: 2; fill: #C9B8FF; glow: (6, fade(#A78BFA, 0.5)) }
+  text { at: (1476, 597); baseline: true; align: right; content: "-3.0"; size: 5.4; font: "mono"; fill: #8D97B0 }
+
+  rect { x: 1278; y: 612; width: 212; height: 26; radius: 3; fill: fade(#65D9FF, 0.07) }
+  text { at: (1284, 625); baseline: true; align: left; content: "KEYS"; size: 5.8; font: "mono"; fill: #8FE3F2 }
+  rect { x: 1320; y: 620; width: 124; height: 4; radius: 2; fill: #22323C }
+  rect { x: 1320 + 16 * (1.0 - lume); y: 618; width: 22; height: 8; radius: 2; fill: #8FE3F2; glow: (6, fade(#65D9FF, 0.45)) }
+  text { at: (1476, 625); baseline: true; align: right; content: "-1.2"; size: 5.4; font: "mono"; fill: #8D97B0 }
+
+  rect { x: 1278; y: 640; width: 212; height: 26; radius: 3; fill: fade(#B8F26A, 0.06) }
+  text { at: (1284, 653); baseline: true; align: left; content: "ROOM"; size: 5.8; font: "mono"; fill: #C6E89A }
+  rect { x: 1320; y: 648; width: 124; height: 4; radius: 2; fill: #26321F }
+  rect { x: 1320 + 20 * lume; y: 646; width: 16; height: 8; radius: 2; fill: #C6E89A }
+  text { at: (1476, 653); baseline: true; align: right; content: "-6.4"; size: 5.4; font: "mono"; fill: #8D97B0 }
+
+  // footer meters
+  repeat "right_meter" {
+    count: 12
+    rect { x: 1278 + i * 18; y: 674; width: 10; height: 4; radius: 1; fill: mix(#A78BFA, #FFB45C, i / 11.0); opacity: 0.20 + 0.62 * (0.5 + 0.5 * wave(t, 0.45, i * 37)) }
+  }
+  text { at: (1492, 676); baseline: true; align: right; content: "M"; size: 4.5; font: "mono"; fill: #6D8792 }
+  polygon { points: [(1284, 454), (1346, 454), (1284, 556), (1268, 556)]; fill: fade(#DFF7FF, 0.045); blend: screen }
+
+  // ═══ GOOSE — BODY, TAIL, FOOT ═════════════════════════════════════════════
+  // lamp warmth behind the goose
+  ellipse { center: (430, 706); radii: (150, 210); fill: fade(#FFB45C, 0.10); blend: screen }
+
+  // contact shadow on desk
+  ellipse { center: (574, 840 + bob * 0.25); radii: (182, 28); fill: @shadow_soft }
+  ellipse { center: (596, 860); radii: (92, 13); fill: fade(#000000, 0.32) }
+
+  path "goose_body" {
+    closed: true
+    fill: @goose_body
+    stroke: @rim_goose
+    stroke_width: 2.0
+    stroke_align: inner
+    shadow: (0, 12, 26, fade(#000000, 0.32))
+    translate: (0, bob * 0.35)
+    move(408, 704)
+    cubic(388, 676, 402, 644, 446, 624)
+    cubic(484, 596, 544, 578, 604, 584)
+    cubic(664, 590, 714, 620, 732, 664)
+    cubic(748, 712, 724, 774, 690, 804)
+    cubic(656, 832, 580, 836, 534, 820)
+    cubic(492, 806, 450, 780, 436, 752)
+    cubic(422, 734, 412, 718, 408, 704)
+    close()
+  }
+
+  // body modelling, all clipped to the silhouette
+  ellipse { center: (548, 820); radii: (150, 64); fill: fade(#8A6D52, 0.52); clip: @goose_body; translate: (0, bob * 0.35) }
+  ellipse { center: (614, 612); radii: (130, 48); fill: fade(#FFFDF6, 0.42); blend: screen; clip: @goose_body; translate: (0, bob * 0.35) }
+  ellipse { center: (696, 716); radii: (58, 112); fill: fade(#8FE3F2, 0.17); blend: screen; clip: @goose_body; translate: (0, bob * 0.35) }
+  ellipse { center: (486, 704); radii: (70, 50); fill: fade(#FFB45C, 0.05); blend: screen; clip: @goose_body; translate: (0, bob * 0.35) }
+
+  // soft feather masses, not scales
+  ellipse { center: (506, 726); radii: (92, 58); fill: fade(#E8DBC8, 0.42); clip: @goose_body; translate: (0, bob * 0.35) }
+  ellipse { center: (566, 782); radii: (96, 48); fill: fade(#E2D3BE, 0.36); clip: @goose_body; translate: (0, bob * 0.35) }
+  ellipse { center: (620, 728); radii: (78, 54); fill: fade(#F2E8D8, 0.34); clip: @goose_body; translate: (0, bob * 0.35) }
+  ellipse { center: (648, 668); radii: (55, 40); fill: fade(#FFF9EC, 0.28); clip: @goose_body; translate: (0, bob * 0.35) }
+
+  // feather boundaries
+  path { fill: none; stroke: fade(#B39D84, 0.58); stroke_width: 1.5; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(468, 694); cubic(488, 704, 510, 706, 526, 700) }
+  path { fill: none; stroke: fade(#B39D84, 0.62); stroke_width: 1.5; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(492, 744); cubic(516, 756, 544, 758, 562, 750) }
+  path { fill: none; stroke: fade(#AE967C, 0.58); stroke_width: 1.5; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(526, 788); cubic(552, 800, 584, 802, 604, 794) }
+  path { fill: none; stroke: fade(#AE967C, 0.54); stroke_width: 1.5; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(574, 818); cubic(600, 828, 630, 826, 648, 816) }
+  path { fill: none; stroke: fade(#B39D84, 0.50); stroke_width: 1.4; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(620, 782); cubic(640, 792, 662, 788, 674, 776) }
+  path { fill: none; stroke: fade(#B39D84, 0.48); stroke_width: 1.4; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(650, 744); cubic(666, 754, 686, 748, 696, 736) }
+  path { fill: none; stroke: fade(#FFFDF7, 0.42); stroke_width: 1.4; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(470, 670); cubic(494, 680, 520, 680, 538, 672) }
+  path { fill: none; stroke: fade(#FFFDF7, 0.34); stroke_width: 1.3; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(556, 630); cubic(580, 640, 608, 640, 628, 632) }
+
+  // broad feather bands
+  path {
+    closed: true
+    fill: fade(#EFE3D1, 0.62)
+    clip: @goose_body
+    translate: (0, bob * 0.35)
+    move(466, 660)
+    cubic(504, 686, 556, 698, 600, 690)
+    cubic(590, 708, 540, 704, 500, 690)
+    cubic(482, 682, 470, 670, 466, 660)
+    close()
+  }
+  path {
+    closed: true
+    fill: fade(#E9DCC9, 0.58)
+    clip: @goose_body
+    translate: (0, bob * 0.35)
+    move(474, 722)
+    cubic(520, 750, 580, 762, 632, 752)
+    cubic(624, 772, 566, 766, 520, 752)
+    cubic(498, 744, 482, 732, 474, 722)
+    close()
+  }
+  path {
+    closed: true
+    fill: fade(#E2D3BE, 0.54)
+    clip: @goose_body
+    translate: (0, bob * 0.35)
+    move(498, 786)
+    cubic(548, 812, 606, 818, 656, 804)
+    cubic(648, 824, 594, 820, 548, 808)
+    cubic(524, 802, 508, 794, 498, 786)
+    close()
+  }
+  // scalloped belly edge
+  repeat "belly_scallops" {
+    count: 6
+    path {
+      fill: none
+      stroke: fade(#CBB8A0, 0.46)
+      stroke_width: 1.3
+      cap: round
+      clip: @goose_body
+      translate: (0, bob * 0.35)
+      move(486 + i * 28, 814)
+      cubic(494 + i * 28, 824, 506 + i * 28, 826, 514 + i * 28, 818)
+    }
+  }
+  // warm / cool rim modelling
+  path { fill: none; stroke: fade(#FFD7A1, 0.42); stroke_width: 3; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(424, 742); cubic(414, 694, 432, 646, 470, 622) }
+  path { fill: none; stroke: fade(#8FE3F2, 0.30); stroke_width: 2.6; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(702, 654); cubic(716, 702, 712, 758, 692, 796) }
+  // neck ruff
+  path { fill: none; stroke: fade(#CBB8A0, 0.45); stroke_width: 1.6; cap: round; translate: (0, bob); move(636, 664); cubic(650, 676, 668, 678, 680, 668) }
+  path { fill: none; stroke: fade(#CBB8A0, 0.40); stroke_width: 1.6; cap: round; translate: (0, bob); move(662, 686); cubic(676, 698, 694, 700, 706, 690) }
+  path { fill: none; stroke: fade(#CBB8A0, 0.34); stroke_width: 1.5; cap: round; translate: (0, bob); move(690, 708); cubic(704, 720, 722, 722, 734, 712) }
+  ellipse { center: (700, 604); radii: (16, 92); fill: fade(#FFB45C, 0.07); blend: screen; clip: @goose_neck; translate: (0, bob) }
+
+  // wing seat shadow + screen bounce
+  path {
+    closed: true
+    fill: fade(#8D7660, 0.20)
+    clip: @goose_body
+    translate: (0, bob * 0.35)
+    move(576, 640)
+    cubic(620, 650, 680, 690, 714, 730)
+    cubic(690, 744, 632, 704, 590, 672)
+    close()
+  }
+  ellipse { center: (712, 720); radii: (44, 110); fill: fade(#8FE3F2, 0.10); blend: screen; clip: @goose_body; translate: (0, bob * 0.35) }
+  ellipse { center: (744, 792); radii: (70, 52); fill: fade(#8FE3F2, 0.08); blend: screen; clip: @goose_wing; translate: (0, bob * 0.62) }
+
+  // breast feather boundaries
+  path { fill: none; stroke: fade(#C1AE96, 0.38); stroke_width: 1.4; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(700, 716); cubic(710, 728, 724, 730, 734, 722) }
+  path { fill: none; stroke: fade(#B39D84, 0.48); stroke_width: 1.4; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(704, 758); cubic(714, 770, 726, 772, 736, 764) }
+  path { fill: none; stroke: fade(#B9A68E, 0.30); stroke_width: 1.3; cap: round; clip: @goose_body; translate: (0, bob * 0.35); move(694, 792); cubic(704, 804, 716, 806, 726, 798) }
+
+  // overlapping breast feathers on the visible flank
+  path {
+    closed: true
+    fill: fade(#EDE1CF, 0.62)
+    stroke: fade(#C2AD95, 0.38)
+    stroke_width: 1
+    clip: @goose_body
+    translate: (0, bob * 0.35)
+    move(438, 694)
+    cubic(448, 724, 470, 740, 490, 736)
+    cubic(480, 712, 462, 696, 438, 694)
+    close()
+  }
+  path {
+    closed: true
+    fill: fade(#E6D8C4, 0.58)
+    stroke: fade(#BCA68D, 0.36)
+    stroke_width: 1
+    clip: @goose_body
+    translate: (0, bob * 0.35)
+    move(452, 744)
+    cubic(464, 774, 486, 788, 508, 784)
+    cubic(496, 760, 476, 744, 452, 744)
+    close()
+  }
+  path {
+    closed: true
+    fill: fade(#DFD0BA, 0.52)
+    stroke: fade(#B8A289, 0.34)
+    stroke_width: 1
+    clip: @goose_body
+    translate: (0, bob * 0.35)
+    move(472, 788)
+    cubic(484, 814, 506, 826, 528, 822)
+    cubic(516, 800, 496, 788, 472, 788)
+    close()
+  }
+
+  // tail — three stacked pointed feathers
+  path {
+    closed: true
+    fill: #E7DBC8
+    stroke: fade(#C2AF99, 0.75)
+    stroke_width: 1.2
+    translate: (0, bob * 0.35)
+    move(508, 616)
+    cubic(480, 598, 442, 590, 408, 600)
+    cubic(426, 620, 452, 638, 478, 648)
+    close()
+  }
+  path {
+    closed: true
+    fill: #EFE4D2
+    stroke: fade(#C8B59F, 0.65)
+    stroke_width: 1.1
+    translate: (0, bob * 0.35)
+    move(512, 634)
+    cubic(482, 626, 450, 634, 424, 652)
+    cubic(446, 662, 476, 660, 500, 650)
+    close()
+  }
+  path {
+    fill: none
+    stroke: fade(#B6A18A, 0.55)
+    stroke_width: 1.3
+    translate: (0, bob * 0.35)
+    move(424, 604)
+    cubic(452, 614, 476, 626, 496, 640)
+    move(438, 652)
+    cubic(462, 646, 486, 636, 506, 622)
+  }
+
+  // ═══ MAIN MACBOOK — the hero screen ═══════════════════════════════════════
+  ellipse { center: (1006, 690); radii: (400, 330); fill: @screen_cyan_glow; blend: screen; opacity: 0.95 }
+  ellipse { center: (1006, 930); radii: (330, 40); fill: @shadow_wide }
+  ellipse { center: (1000, 944); radii: (260, 22); fill: fade(#000000, 0.40) }
+
+  // base (behind the screen bottom)
+  polygon "main_base" {
+    points: [(800, 798), (1230, 798), (1304, 946), (726, 946)]
+    fill: @alu_face
+    stroke: fade(#F7FBFD, 0.32)
+    stroke_width: 1
+  }
+  // base top deck
+  polygon { points: [(806, 804), (1224, 804), (1290, 936), (738, 936)]; fill: fade(#DCE7EE, 0.55) }
+  // keyboard well
+  polygon { points: [(766, 816), (1244, 816), (1282, 908), (746, 908)]; fill: #080D11; stroke: fade(#4A5862, 0.45); stroke_width: 1 }
+
+  // four key rows
+  repeat "main_keys" {
+    count: 56
+    let col = i - floor(i / 14) * 14
+    let row = floor(i / 14)
+    rect {
+      x: 756 + row * 9 + col * 33.4
+      y: 823 + row * 14
+      width: 29
+      height: 10.5
+      radius: 2
+      fill: #171E24
+      stroke: fade(#4C5A64, 0.75)
+      stroke_width: 0.8
+    }
+    rect {
+      x: 758 + row * 9 + col * 33.4
+      y: 824 + row * 14
+      width: 25
+      height: 1.2
+      radius: 0.6
+      fill: fade(#9FB3BF, 0.18)
+    }
+  }
+  // bottom row + spacebar
+  repeat "main_bottom_keys" {
+    count: 5
+    rect {
+      x: 758 + i * 40
+      y: 881
+      width: 35
+      height: 11
+      radius: 2
+      fill: #171E24
+      stroke: fade(#4C5A64, 0.75)
+      stroke_width: 0.8
+    }
+  }
+  rect { x: 934; y: 881; width: 168; height: 11; radius: 2; fill: #171E24; stroke: fade(#4C5A64, 0.75); stroke_width: 0.8 }
+  repeat "main_right_keys" {
+    count: 4
+    rect {
+      x: 1114 + i * 40
+      y: 881
+      width: 35
+      height: 11
+      radius: 2
+      fill: #171E24
+      stroke: fade(#4C5A64, 0.75)
+      stroke_width: 0.8
+    }
+  }
+  // depressed typing keys under the wing
+  let press1 = 1.6 * (0.5 + 0.5 * wave(t, 0.72, 0))
+  let press2 = 1.6 * (0.5 + 0.5 * wave(t, 0.72, 120))
+  let press3 = 1.6 * (0.5 + 0.5 * wave(t, 0.72, 240))
+  rect { x: 854; y: 867 + press1; width: 29; height: 10.5; radius: 2; fill: #223038; stroke: #B8F26A; stroke_width: 0.9; glow: (7, fade(#B8F26A, 0.35)) }
+  rect { x: 888; y: 881 + press2; width: 29; height: 11; radius: 2; fill: #223038; stroke: fade(#B8F26A, 0.8); stroke_width: 0.9; glow: (7, fade(#B8F26A, 0.30)) }
+  rect { x: 822; y: 853 + press3; width: 29; height: 10.5; radius: 2; fill: #223038; stroke: fade(#B8F26A, 0.65); stroke_width: 0.9 }
+  // keyboard backlight
+  polygon { points: [(766, 816), (1244, 816), (1282, 908), (746, 908)]; fill: fade(#65D9FF, 0.035); blend: screen }
+
+  // trackpad
+  rect { x: 890; y: 914; width: 158; height: 24; radius: 5; fill: #A9B8C2; stroke: fade(#E8F3F8, 0.35); stroke_width: 1; stroke_align: inner }
+  rect { x: 894; y: 917; width: 150; height: 8; radius: 4; fill: fade(#FFFFFF, 0.12); blend: screen }
+
+  // speaker grilles
+  repeat "grille_l" {
+    count: 6
+    line { from: (734, 830 + i * 8); to: (744, 830 + i * 8); stroke: fade(#647681, 0.55); stroke_width: 1.2 }
+  }
+  repeat "grille_r" {
+    count: 6
+    line { from: (1252, 830 + i * 8); to: (1262, 830 + i * 8); stroke: fade(#647681, 0.55); stroke_width: 1.2 }
+  }
+  // ports
+  rect { x: 722; y: 852; width: 12; height: 4; radius: 2; fill: #10171B; stroke: fade(#91A4AF, 0.35); stroke_width: 0.7 }
+  rect { x: 722; y: 864; width: 12; height: 4; radius: 2; fill: #10171B; stroke: fade(#91A4AF, 0.35); stroke_width: 0.7 }
+  rect { x: 722; y: 876; width: 12; height: 4; radius: 2; fill: #10171B; stroke: fade(#91A4AF, 0.35); stroke_width: 0.7 }
+  // front edge
+  polygon { points: [(726, 944), (1304, 944), (1306, 952), (724, 952)]; fill: @alu_edge }
+  line { from: (760, 946); to: (1270, 946); stroke: fade(#FFFFFF, 0.30); stroke_width: 1 }
+  // rubber feet
+  rect { x: 760; y: 950; width: 26; height: 4; radius: 2; fill: #0B0F12; opacity: 0.8 }
+  rect { x: 1240; y: 950; width: 26; height: 4; radius: 2; fill: #0B0F12; opacity: 0.8 }
+
+  // screen assembly
+  rect "main_bezel" {
+    x: 800
+    y: 500
+    width: 430
+    height: 306
+    radius: 14
+    fill: @alu_dark
+    stroke: fade(#F2FAFD, 0.45)
+    stroke_width: 1.4
+    stroke_align: inner
+    shadow: (0, 18, 34, fade(#000000, 0.52))
+  }
+  rect "main_glass" { x: 812; y: 512; width: 406; height: 276; radius: 6; fill: @screen_ink }
+  // bezel top highlight
+  rect { x: 808; y: 502; width: 414; height: 2; radius: 1; fill: fade(#FFFFFF, 0.38) }
+  rect { x: 832; y: 796; width: 366; height: 2; fill: fade(#0B1115, 0.7) }
+
+  // camera notch + sensor
+  rect { x: 976; y: 514; width: 60; height: 10; radius: 5; fill: #03090C; stroke: fade(#000000, 0.6); stroke_width: 0.5 }
+  circle { center: (1006, 519); radius: 2.6; fill: #0A1E26; stroke: fade(#65D9FF, 0.45); stroke_width: 0.7 }
+  circle { center: (1015, 518); radius: 1.1; fill: #B8F26A; opacity: 0.7 * lume }
+
+  // ── screen UI: menu bar ────────────────────────────────────────────────────
+  rect { x: 812; y: 512; width: 406; height: 18; fill: #0B1A22 }
+  circle { center: (823, 521); radius: 3.1; fill: #F26D5F; opacity: 0.85 }
+  circle { center: (833, 521); radius: 3.1; fill: #F2B35E; opacity: 0.85 }
+  circle { center: (843, 521); radius: 3.1; fill: #7ED07A; opacity: 0.85 }
+  text { at: (854, 524); baseline: true; align: left; content: "goose.mesh"; size: 6.8; font: "mono"; fill: #9FB8C2 }
+  text { at: (1012, 524); baseline: true; align: center; content: "STUDIO 04 — 2.4s"; size: 6.2; font: "mono"; letter_spacing: 0.8; fill: #6D8792 }
+  text { at: (1208, 524); baseline: true; align: right; content: "MESH 1.0"; size: 6.2; font: "mono"; fill: #65D9FF }
+
+  // ── sidebar ────────────────────────────────────────────────────────────────
+  rect { x: 812; y: 530; width: 88; height: 246; fill: #08151C }
+  line { from: (900, 530); to: (900, 776); stroke: fade(#3E5A66, 0.35); stroke_width: 1 }
+  text { at: (820, 546); baseline: true; align: left; content: "EXPLORER"; size: 5.8; font: "mono"; letter_spacing: 1; fill: #4E6A74 }
+
+  text { at: (820, 565); baseline: true; align: left; content: "assets"; size: 6.4; font: "mono"; fill: #7F9AA6 }
+  text { at: (831, 582); baseline: true; align: left; content: "src"; size: 6.4; font: "mono"; fill: #A9C0CA }
+  rect { x: 816; y: 592; width: 82; height: 14; radius: 2; fill: fade(#65D9FF, 0.10) }
+  text { at: (831, 602); baseline: true; align: left; content: "goose.mesh"; size: 6.4; font: "mono"; fill: #EAF6F8 }
+  text { at: (842, 619); baseline: true; align: left; content: "engine.wgsl"; size: 6.2; font: "mono"; fill: #7F9AA6 }
+  text { at: (842, 636); baseline: true; align: left; content: "studio.rs"; size: 6.2; font: "mono"; fill: #7F9AA6 }
+  text { at: (820, 660); baseline: true; align: left; content: "notes.md"; size: 6.4; font: "mono"; fill: #7F9AA6 }
+  text { at: (820, 684); baseline: true; align: left; content: "reference"; size: 6.2; font: "mono"; fill: #4E6A74 }
+  text { at: (820, 708); baseline: true; align: left; content: "preview.png"; size: 6.2; font: "mono"; fill: #4E6A74 }
+
+  // tiny folder / file glyphs
+  polygon { points: [(820, 559), (826, 559), (828, 561), (832, 561), (832, 565), (820, 565)]; fill: #C7A36A }
+  polygon { points: [(820, 576), (826, 576), (828, 578), (832, 578), (832, 582), (820, 582)]; fill: #7FA8B4 }
+  circle { center: (824, 660); radius: 1.5; fill: #B8F26A; opacity: 0.8 }
+  circle { center: (824, 684); radius: 1.5; fill: #65D9FF; opacity: 0.6 }
+
+  // ── editor tabs ────────────────────────────────────────────────────────────
+  rect { x: 900; y: 530; width: 318; height: 18; fill: #0A1922 }
+  rect { x: 900; y: 530; width: 92; height: 18; fill: #0D2029 }
+  rect { x: 900; y: 547; width: 92; height: 1.5; fill: #B8F26A }
+  text { at: (908, 542); baseline: true; align: left; content: "goose.mesh"; size: 6.4; font: "mono"; fill: #EAF6F8 }
+  text { at: (1002, 542); baseline: true; align: left; content: "engine.wgsl"; size: 6.2; font: "mono"; fill: #5F7C88 }
+  text { at: (1084, 542); baseline: true; align: left; content: "notes.md"; size: 6.2; font: "mono"; fill: #5F7C88 }
+  line { from: (900, 548); to: (1218, 548); stroke: fade(#3E5A66, 0.35); stroke_width: 1 }
+
+  // ── code ───────────────────────────────────────────────────────────────────
+  // active line
+  rect { x: 900; y: 700; width: 318; height: 15; fill: fade(#65D9FF, 0.06) }
+  // line numbers
+  text { at: (908, 575); baseline: true; align: right; content: "1"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 590); baseline: true; align: right; content: "2"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 605); baseline: true; align: right; content: "3"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 620); baseline: true; align: right; content: "4"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 635); baseline: true; align: right; content: "5"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 650); baseline: true; align: right; content: "6"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 665); baseline: true; align: right; content: "7"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 680); baseline: true; align: right; content: "8"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 695); baseline: true; align: right; content: "9"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 710); baseline: true; align: right; content: "10"; size: 6; font: "mono"; fill: #65D9FF }
+  text { at: (908, 725); baseline: true; align: right; content: "11"; size: 6; font: "mono"; fill: #3C5965 }
+  text { at: (908, 740); baseline: true; align: right; content: "12"; size: 6; font: "mono"; fill: #3C5965 }
+
+  // line 1 — comment
+  text { at: (916, 575); baseline: true; align: left; content: "// 02:14 / studio goose"; size: 8; font: "mono"; fill: #4E6A74 }
+  // line 2 — mesh header
+  text { at: (916, 590); baseline: true; align: left; content: "mesh"; size: 8; font: "mono"; fill: #FF9E64 }
+  text { at: (938, 590); baseline: true; align: left; content: "'late_studio' {"; size: 8; font: "mono"; fill: #B8F26A }
+  // line 3 — canvas
+  text { at: (916, 605); baseline: true; align: left; content: "  canvas"; size: 8; font: "mono"; fill: #C9D6E0 }
+  text { at: (958, 605); baseline: true; align: left; content: "{ 1600 x 1000 }"; size: 8; font: "mono"; fill: #6D8792 }
+  // line 4 — let goose
+  text { at: (916, 620); baseline: true; align: left; content: "  let"; size: 8; font: "mono"; fill: #FF9E64 }
+  text { at: (944, 620); baseline: true; align: left; content: "goose"; size: 8; font: "mono"; fill: #65D9FF }
+  text { at: (972, 620); baseline: true; align: left; content: "="; size: 8; font: "mono"; fill: #C9D6E0 }
+  text { at: (984, 620); baseline: true; align: left; content: "spline {"; size: 8; font: "mono"; fill: #B8F26A }
+  // line 5
+  text { at: (916, 635); baseline: true; align: left; content: "    points:"; size: 8; font: "mono"; fill: #6D8792 }
+  text { at: (978, 635); baseline: true; align: left; content: "neck_curve"; size: 8; font: "mono"; fill: #EAF6F8 }
+  // line 6
+  text { at: (916, 650); baseline: true; align: left; content: "    fill:"; size: 8; font: "mono"; fill: #6D8792 }
+  text { at: (962, 650); baseline: true; align: left; content: "@ivory"; size: 8; font: "mono"; fill: #FFB45C }
+  // line 7
+  text { at: (916, 665); baseline: true; align: left; content: "    glow:"; size: 8; font: "mono"; fill: #6D8792 }
+  text { at: (962, 665); baseline: true; align: left; content: "14"; size: 8; font: "mono"; fill: #FFB45C }
+  // line 8
+  text { at: (916, 680); baseline: true; align: left; content: "  }"; size: 8; font: "mono"; fill: #6D8792 }
+  // line 9
+  text { at: (916, 695); baseline: true; align: left; content: "  repeat"; size: 8; font: "mono"; fill: #FF9E64 }
+  text { at: (964, 695); baseline: true; align: left; content: "'keys'"; size: 8; font: "mono"; fill: #B8F26A }
+  text { at: (1000, 695); baseline: true; align: left; content: "{ count: 64 }"; size: 8; font: "mono"; fill: #C9D6E0 }
+  // line 10
+  text { at: (916, 710); baseline: true; align: left; content: "  frame(t:"; size: 8; font: "mono"; fill: #C9D6E0 }
+  text { at: (974, 710); baseline: true; align: left; content: "2.4"; size: 8; font: "mono"; fill: #FFB45C }
+  text { at: (992, 710); baseline: true; align: left; content: ") -> hero"; size: 8; font: "mono"; fill: #B8F26A }
+  // cursor
+  rect { x: 1054; y: 703; width: 5; height: 10; radius: 1; fill: #B8F26A; opacity: 0.18 + 0.72 * (0.5 + 0.5 * wave(t, 0.85, 30)); glow: (7, fade(#B8F26A, 0.55)) }
+  // line 11
+  text { at: (916, 725); baseline: true; align: left; content: "  export("; size: 8; font: "mono"; fill: #FF9E64 }
+  text { at: (968, 725); baseline: true; align: left; content: "'goose.mesh'"; size: 8; font: "mono"; fill: #B8F26A }
+  text { at: (1036, 725); baseline: true; align: left; content: ")"; size: 8; font: "mono"; fill: #C9D6E0 }
+  // line 12
+  text { at: (916, 740); baseline: true; align: left; content: "}"; size: 8; font: "mono"; fill: #6D8792 }
+
+  // minimap
+  rect { x: 1152; y: 558; width: 56; height: 168; radius: 2; fill: fade(#0A1B24, 0.65) }
+  repeat "minimap" {
+    count: 22
+    let mw = 6 + 30 * abs(wave(i * 1.7, 0.08, 20))
+    rect { x: 1156; y: 562 + i * 7.2; width: mw; height: 1.8; radius: 0.9; fill: mix(#3E8FA6, #B8F26A, i / 22.0); opacity: 0.30 }
+  }
+
+  // build badge
+  rect { x: 1090; y: 556; width: 78; height: 18; radius: 9; fill: fade(#B8F26A, 0.10); stroke: fade(#B8F26A, 0.35); stroke_width: 0.8 }
+  circle { center: (1100, 565); radius: 2.2; fill: #B8F26A; opacity: 0.85; glow: (6, fade(#B8F26A, 0.5)) }
+  text { at: (1108, 568); baseline: true; align: left; content: "BUILD 2.4s"; size: 6; font: "mono"; fill: #B8F26A }
+
+  // status bar
+  rect { x: 900; y: 762; width: 318; height: 14; fill: #08151B }
+  text { at: (906, 772); baseline: true; align: left; content: "main*   OK 0   ln 10:03   UTF-8"; size: 5.8; font: "mono"; fill: #5F8792 }
+  text { at: (1212, 772); baseline: true; align: right; content: "4x"; size: 5.8; font: "mono"; fill: #65D9FF }
+
+  // scanline + glass sweep
+  rect {
+    x: 812
+    y: 560 + fract(t * 0.06) * 220
+    width: 406
+    height: 1.4
+    fill: fade(#9FE8FF, 0.07)
+    clip: @main_glass
+    blend: screen
+  }
+  polygon {
+    points: [(880, 512), (1010, 512), (900, 788), (770, 788)]
+    fill: fade(#DFF7FF, 0.035)
+    clip: @main_glass
+    blend: screen
+  }
+  polygon {
+    points: [
+      (860 + oscillate(t, 0.06, -240, 380), 512),
+      (1010 + oscillate(t, 0.06, -240, 380), 512),
+      (900 + oscillate(t, 0.06, -240, 380), 788),
+      (750 + oscillate(t, 0.06, -240, 380), 788)
+    ]
+    fill: fade(#FFFFFF, 0.045)
+    clip: @main_glass
+    blend: screen
+  }
+  // screen grain
+  rect { x: 812; y: 512; width: 406; height: 276; radius: 6; fill: @screen_tooth; clip: @main_glass; blend: screen; opacity: 0.55 }
+
+  // hinge
+  rect { x: 806; y: 794; width: 418; height: 10; radius: 5; fill: #1A2227; stroke: fade(#C9D6E0, 0.24); stroke_width: 1 }
+  rect { x: 826; y: 797; width: 378; height: 1.5; fill: fade(#FFFFFF, 0.22) }
+
+  // ═══ GOOSE — NECK ═════════════════════════════════════════════════════════
+  path "goose_neck" {
+    closed: true
+    fill: @goose_neck
+    stroke: @rim_goose
+    stroke_width: 1.5
+    stroke_align: inner
+    shadow: (10, 14, 22, fade(#000000, 0.20))
+    translate: (0, bob)
+    move(610, 702)
+    cubic(630, 612, 690, 532, 735, 456)
+    cubic(750, 426, 766, 400, 786, 392)
+    cubic(816, 384, 851, 395, 866, 416)
+    cubic(858, 454, 838, 494, 814, 534)
+    cubic(790, 582, 764, 642, 738, 686)
+    cubic(710, 704, 660, 708, 610, 702)
+    close()
+  }
+  // neck shading / bounce
+  ellipse { center: (676, 600); radii: (36, 110); fill: fade(#C9B59D, 0.28); rotate: -8; translate: (0, bob) }
+  ellipse { center: (806, 520); radii: (26, 100); fill: fade(#FFFDF7, 0.30); rotate: 7; translate: (0, bob) }
+  ellipse { center: (764, 606); radii: (16, 58); fill: fade(#8FE3F2, 0.10); translate: (0, bob) }
+
+  ellipse { center: (656, 612); radii: (20, 104); fill: fade(#FFB45C, 0.08); blend: screen; translate: (0, bob) }
+  ellipse { center: (732, 662); radii: (26, 64); fill: fade(#B9A58E, 0.16); translate: (0, bob) }
+
+  // fine neck feathers
+  repeat "neck_feathers" {
+    count: 5
+    let ny = 470 + i * 38
+    path {
+      fill: none
+      stroke: fade(#C8B59E, 0.42)
+      stroke_width: 1.3
+      cap: round
+      move(718 + i * 5, ny)
+      cubic(730 + i * 5, ny + 8, 744 + i * 5, ny + 8, 752 + i * 5, ny)
+      translate: (0, bob)
+    }
+  }
+  path {
+    fill: none
+    stroke: fade(#FFFDF6, 0.55)
+    stroke_width: 1.6
+    cap: round
+    translate: (0, bob)
+    move(722, 486)
+    cubic(736, 498, 756, 506, 772, 506)
+  }
+
+  // ═══ GOOSE — HEAD ═════════════════════════════════════════════════════════
+  // head shadow falling on neck
+  path {
+    closed: true
+    fill: fade(#8D7660, 0.18)
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(760, 392)
+    cubic(762, 342, 794, 312, 830, 312)
+    cubic(870, 312, 894, 340, 892, 372)
+    cubic(890, 398, 868, 414, 838, 414)
+    cubic(804, 414, 776, 402, 760, 392)
+    close()
+    translate: (0, 7)
+  }
+
+  ellipse { center: (826, 408); radii: (42, 14); fill: fade(#8D7660, 0.24); translate: (0, bob) }
+
+  path "goose_head" {
+    closed: true
+    fill: @goose_neck
+    stroke: @rim_goose
+    stroke_width: 1.6
+    stroke_align: inner
+    shadow: (8, 10, 18, fade(#000000, 0.18))
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(760, 376)
+    cubic(754, 322, 788, 290, 830, 292)
+    cubic(874, 294, 896, 326, 892, 360)
+    cubic(888, 394, 858, 414, 824, 412)
+    cubic(790, 410, 766, 398, 760, 376)
+    close()
+  }
+  // crown / cheek modelling
+  ellipse { center: (810, 312); radii: (44, 18); fill: fade(#FFFDF7, 0.38); blend: screen; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  ellipse { center: (848, 372); radii: (28, 18); fill: fade(#D8C6AF, 0.30); matrix: (tc, ts, -ts, tc, mtx, mty) }
+  ellipse { center: (866, 342); radii: (18, 30); fill: fade(#8FE3F2, 0.12); matrix: (tc, ts, -ts, tc, mtx, mty) }
+
+  // low nape ridge
+  path { fill: none; stroke: fade(#D8C8B2, 0.55); stroke_width: 2; cap: round; center: (826, 350); rotate: tilt; translate: (0, bob); move(792, 306); cubic(800, 298, 808, 296, 816, 298) }
+  path { fill: none; stroke: fade(#E7DAC7, 0.50); stroke_width: 1.8; cap: round; center: (826, 350); rotate: tilt; translate: (0, bob); move(786, 316); cubic(794, 308, 802, 306, 810, 308) }
+  path { fill: none; stroke: fade(#CBB9A3, 0.42); stroke_width: 1.6; cap: round; center: (826, 350); rotate: tilt; translate: (0, bob); move(780, 328); cubic(788, 321, 796, 319, 804, 321) }
+
+  ellipse { center: (796, 360); radii: (24, 28); fill: fade(#D8C6AF, 0.22); center: (826, 350); rotate: tilt; translate: (0, bob) }
+  ellipse { center: (786, 336); radii: (14, 24); fill: fade(#FFD7A1, 0.10); blend: screen; center: (826, 350); rotate: tilt; translate: (0, bob) }
+  ellipse { center: (862, 318); radii: (20, 12); fill: fade(#FFFDF7, 0.34); blend: screen; center: (826, 350); rotate: tilt; translate: (0, bob) }
+
+  // cheek feather scallops
+  path {
+    fill: none
+    stroke: fade(#C7B39C, 0.42)
+    stroke_width: 1.2
+    cap: round
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(838, 388)
+    cubic(842, 396, 850, 398, 856, 393)
+  }
+  path {
+    fill: none
+    stroke: fade(#C7B39C, 0.32)
+    stroke_width: 1.2
+    cap: round
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(820, 394)
+    cubic(824, 402, 832, 404, 838, 399)
+  }
+
+  // ── beak ───────────────────────────────────────────────────────────────────
+  path "beak_lower" {
+    closed: true
+    fill: #D96A26
+    stroke: fade(#A74716, 0.9)
+    stroke_width: 1.2
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(878, 346)
+    cubic(900, 348, 930, 352, 952, 350)
+    cubic(942, 366, 914, 374, 890, 369)
+    cubic(882, 362, 879, 354, 878, 346)
+    close()
+  }
+  path "beak_upper" {
+    closed: true
+    fill: @beak_grad
+    stroke: fade(#A74716, 0.85)
+    stroke_width: 1.3
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(877, 330)
+    cubic(904, 324, 936, 334, 960, 347)
+    cubic(946, 356, 918, 358, 892, 354)
+    cubic(882, 350, 876, 340, 877, 330)
+    close()
+  }
+  path {
+    closed: true
+    fill: fade(#8F3C10, 0.22)
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(884, 352)
+    cubic(910, 358, 936, 360, 952, 356)
+    cubic(938, 370, 910, 374, 890, 369)
+    close()
+  }
+  // beak centre ridge + mouth line
+  path {
+    fill: none
+    stroke: fade(#7E340B, 0.90)
+    stroke_width: 1.2
+    cap: round
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(882, 340)
+    cubic(906, 338, 932, 344, 953, 350)
+  }
+  path {
+    fill: none
+    stroke: fade(#FFF1D8, 0.34)
+    stroke_width: 1.4
+    cap: round
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(884, 334)
+    cubic(908, 331, 932, 339, 950, 347)
+  }
+  // nostril
+  ellipse { center: (906, 337); radii: (3.2, 1.8); fill: #93400F; rotate: 18; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  // nail at the tip
+  polygon {
+    points: [(946, 340), (960, 347), (950, 355)]
+    fill: #B4531B
+    stroke: fade(#7E340B, 0.7)
+    stroke_width: 0.8
+    matrix: (tc, ts, -ts, tc, mtx, mty)
+  }
+  // subtle beak serration
+  repeat "beak_teeth" {
+    count: 5
+    line {
+      from: (908 + i * 8, 352)
+      to: (906 + i * 8, 357)
+      stroke: fade(#8F3C10, 0.35)
+      stroke_width: 1
+      matrix: (tc, ts, -ts, tc, mtx, mty)
+    }
+  }
+
+  // ── eye ────────────────────────────────────────────────────────────────────
+  ellipse { center: (842, 335); radii: (10.5, 1.2 + blink * 8.6); fill: #17100A; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  ellipse { center: (842, 335); radii: (6.4, 0.8 + blink * 5.6); fill: #6E4826; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  ellipse { center: (842, 335); radii: (4.2, 0.6 + blink * 4.0); fill: #050302; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  circle { center: (839.4, 331.6); radius: 2.2 * blink; fill: #FFFFFF; opacity: 0.92; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  circle { center: (845.4, 338.2); radius: 1.1; fill: #C8EFFF; opacity: 0.55 * blink; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  // upper lid
+  ellipse { center: (842, 335 - 14 * blink); radii: (13, 11); fill: #F4EAD9; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  path {
+    fill: none
+    stroke: fade(#B9A38A, 0.55)
+    stroke_width: 1.2
+    cap: round
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(830, 334 - 13 * blink)
+    cubic(836, 340 - 15 * blink, 848, 340 - 15 * blink, 854, 333 - 13 * blink)
+  }
+  // brow
+  path {
+    fill: none
+    stroke: fade(#D5C2A9, 0.62)
+    stroke_width: 2.4
+    cap: round
+    center: (826, 350); rotate: tilt; translate: (0, bob)
+    move(828, 320)
+    cubic(836, 314, 850, 314, 857, 319)
+  }
+
+  // ── round spectacles ───────────────────────────────────────────────────────
+  circle { center: (842, 335); radius: 24; fill: fade(#9FE8FF, 0.035); stroke: #C7A165; stroke_width: 1.8; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  circle { center: (842, 335); radius: 22.6; fill: none; stroke: fade(#FFE0AE, 0.35); stroke_width: 0.7; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  circle { center: (786, 327); radius: 17; fill: fade(#9FE8FF, 0.025); stroke: #C7A165; stroke_width: 1.6; matrix: (tc, ts, -ts, tc, mtx, mty) }
+  path { fill: none; stroke: #C7A165; stroke_width: 1.6; cap: round; matrix: (tc, ts, -ts, tc, mtx, mty); move(801, 331); cubic(806, 328, 812, 328, 818, 331) }
+  path { fill: none; stroke: #C7A165; stroke_width: 1.6; cap: round; matrix: (tc, ts, -ts, tc, mtx, mty); move(769, 323); cubic(760, 318, 752, 314, 744, 312) }
+  path { fill: none; stroke: fade(#FFFFFF, 0.55); stroke_width: 1.3; cap: round; matrix: (tc, ts, -ts, tc, mtx, mty); move(828, 322); cubic(834, 318, 842, 318, 848, 321) }
+  path { fill: none; stroke: fade(#FFFFFF, 0.32); stroke_width: 1; cap: round; matrix: (tc, ts, -ts, tc, mtx, mty); move(776, 320); cubic(780, 317, 786, 316, 790, 317) }
+
+  // ═══ GOOSE — WING ON THE KEYBOARD ═════════════════════════════════════════
+  ellipse { center: (812, 888); radii: (64, 15); fill: fade(#000000, 0.42); opacity: 0.85 }
+
+  // one continuous wing: shoulder to the keycaps
+  path "goose_wing" {
+    closed: true
+    fill: @goose_wing
+    stroke: fade(#F6EBD9, 0.50)
+    stroke_width: 2
+    stroke_align: inner
+    shadow: (6, 10, 18, fade(#000000, 0.32))
+    translate: (0, bob * 0.62)
+    move(596, 636)
+    cubic(652, 624, 700, 658, 722, 708)
+    cubic(744, 758, 782, 816, 824, 850)
+    cubic(844, 866, 848, 882, 834, 892)
+    cubic(818, 902, 794, 890, 772, 874)
+    cubic(722, 836, 670, 790, 628, 746)
+    cubic(594, 710, 576, 674, 596, 636)
+    close()
+  }
+  // volume: shadow the trailing edge, light the shoulder
+  path {
+    closed: true
+    fill: fade(#9C856D, 0.28)
+    clip: @goose_wing
+    translate: (0, bob * 0.62)
+    move(640, 760)
+    cubic(680, 800, 730, 840, 770, 872)
+    cubic(810, 896, 840, 894, 846, 878)
+    cubic(830, 870, 800, 856, 770, 834)
+    cubic(720, 798, 670, 760, 640, 760)
+    close()
+  }
+  ellipse { center: (660, 680); radii: (52, 46); fill: fade(#FFF9EC, 0.30); blend: screen; clip: @goose_wing; translate: (0, bob * 0.62) }
+
+  // long contour feathers
+  path { fill: none; stroke: fade(#9A8269, 0.72); stroke_width: 1.6; cap: round; clip: @goose_wing; translate: (0, bob * 0.62); move(604, 674); cubic(634, 694, 676, 722, 710, 752) }
+  path { fill: none; stroke: fade(#9A8269, 0.66); stroke_width: 1.6; cap: round; clip: @goose_wing; translate: (0, bob * 0.62); move(596, 722); cubic(630, 744, 672, 776, 704, 806) }
+  path { fill: none; stroke: fade(#A68D73, 0.60); stroke_width: 1.5; cap: round; clip: @goose_wing; translate: (0, bob * 0.62); move(602, 770); cubic(636, 792, 676, 822, 708, 846) }
+  path { fill: none; stroke: fade(#FFFDF7, 0.38); stroke_width: 1.4; cap: round; clip: @goose_wing; translate: (0, bob * 0.62); move(610, 654); cubic(642, 668, 680, 696, 706, 724) }
+  // leading edge highlight
+  path {
+    fill: none
+    stroke: fade(#FFFDF7, 0.74)
+    stroke_width: 4.6
+    cap: round
+    translate: (0, bob * 0.62)
+    move(606, 644)
+    cubic(652, 634, 696, 666, 718, 710)
+  }
+  path {
+    fill: none
+    stroke: fade(#FFD7A1, 0.24)
+    stroke_width: 2.5
+    cap: round
+    translate: (0, bob * 0.62)
+    move(608, 684)
+    cubic(630, 726, 654, 770, 676, 806)
+  }
+  // scalloped covert tips near the shoulder
+  repeat "wing_scallops" {
+    count: 4
+    path {
+      fill: none
+      stroke: fade(#FFFDF7, 0.42)
+      stroke_width: 1.5
+      cap: round
+      clip: @goose_wing
+      translate: (0, bob * 0.62)
+      move(596 + i * 26, 660 + i * 24)
+      cubic(608 + i * 26, 674 + i * 24, 622 + i * 26, 678 + i * 24, 634 + i * 26, 668 + i * 24)
+    }
+  }
+
+  // broad primary feathers at the tip
+  let tap1 = 2.2 * (0.5 + 0.5 * wave(t, 0.72, 0))
+  let tap2 = 2.2 * (0.5 + 0.5 * wave(t, 0.72, 120))
+  let tap3 = 2.2 * (0.5 + 0.5 * wave(t, 0.72, 240))
+  path {
+    closed: true
+    fill: #F8F0E3
+    stroke: fade(#B5A088, 0.95)
+    stroke_width: 1.3
+    clip: @goose_wing
+    translate: (0, bob * 0.62 + tap1)
+    move(690, 770)
+    cubic(710, 798, 746, 832, 782, 858)
+    cubic(770, 872, 734, 842, 702, 810)
+    cubic(694, 800, 690, 784, 690, 770)
+    close()
+  }
+  path {
+    closed: true
+    fill: #F4EADA
+    stroke: fade(#B19C85, 0.95)
+    stroke_width: 1.3
+    clip: @goose_wing
+    translate: (0, bob * 0.62 + tap2)
+    move(704, 780)
+    cubic(724, 808, 760, 842, 798, 866)
+    cubic(786, 880, 750, 850, 716, 820)
+    cubic(708, 810, 704, 794, 704, 780)
+    close()
+  }
+  path {
+    closed: true
+    fill: #F0E4D3
+    stroke: fade(#AD9881, 0.95)
+    stroke_width: 1.3
+    clip: @goose_wing
+    translate: (0, bob * 0.62 + tap3)
+    move(718, 790)
+    cubic(738, 818, 774, 852, 814, 874)
+    cubic(802, 888, 766, 858, 730, 830)
+    cubic(722, 820, 718, 804, 718, 790)
+    close()
+  }
+  path {
+    closed: true
+    fill: #EBDDCB
+    stroke: fade(#A9947D, 0.92)
+    stroke_width: 1.3
+    clip: @goose_wing
+    translate: (0, bob * 0.62 + tap1)
+    move(732, 800)
+    cubic(752, 828, 788, 860, 828, 882)
+    cubic(816, 896, 780, 868, 744, 840)
+    cubic(736, 830, 732, 814, 732, 800)
+    close()
+  }
+  path {
+    closed: true
+    fill: #E6D8C4
+    stroke: fade(#A59079, 0.90)
+    stroke_width: 1.3
+    clip: @goose_wing
+    translate: (0, bob * 0.62 + tap2)
+    move(746, 810)
+    cubic(766, 838, 802, 868, 842, 888)
+    cubic(830, 902, 794, 876, 758, 850)
+    cubic(750, 840, 746, 824, 746, 810)
+    close()
+  }
+  // trailing feather tips
+  repeat "wing_trailing" {
+    count: 6
+    path {
+      fill: none
+      stroke: fade(#A28B72, 0.42)
+      stroke_width: 1.3
+      cap: round
+      clip: @goose_wing
+      translate: (0, bob * 0.62)
+      move(640 + i * 26, 792 + i * 14)
+      cubic(650 + i * 26, 806 + i * 14, 664 + i * 26, 808 + i * 14, 674 + i * 26, 798 + i * 14)
+    }
+  }
+  // shafts
+  repeat "primary_shafts" {
+    count: 5
+    path {
+      fill: none
+      stroke: fade(#9C8770, 0.55)
+      stroke_width: 1.3
+      cap: round
+      clip: @goose_wing
+      translate: (0, bob * 0.62)
+      move(700 + i * 14, 776 + i * 10)
+      cubic(722 + i * 14, 802 + i * 10, 752 + i * 14, 834 + i * 10, 778 + i * 14, 856 + i * 10)
+    }
+  }
+  // ═══ CLOSED MACBOOK — foreground left ═════════════════════════════════════
+  let ca = cos(-6)
+  let sa = sin(-6)
+  let cpx = 275
+  let cpy = 852
+  let cmtx = cpx - cpx * ca + cpy * sa
+  let cmty = cpy - cpx * sa - cpy * ca
+  ellipse { center: (286, 952); radii: (184, 20); fill: @shadow_soft }
+  // book it rests on
+  rect {
+    x: 152; y: 898; width: 256; height: 24; radius: 4
+    fill: #1E2C31; stroke: fade(#9FC8D2, 0.14); stroke_width: 1
+    matrix: (ca, sa, -sa, ca, cmtx + 2, cmty + 4)
+  }
+  rect {
+    x: 156; y: 900; width: 248; height: 4; radius: 2
+    fill: fade(#D8C7A8, 0.45)
+    matrix: (ca, sa, -sa, ca, cmtx + 2, cmty + 4)
+  }
+  // base plate (protrudes under the lid)
+  rect {
+    x: 140; y: 870; width: 270; height: 44; radius: 9
+    fill: #6E7B84
+    stroke: fade(#EAF4F8, 0.30); stroke_width: 1
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  rect {
+    x: 144; y: 780; width: 7; height: 110; radius: 3
+    fill: #7C8992
+    stroke: fade(#EAF4F8, 0.18); stroke_width: 0.8
+    matrix: (ca, sa, -sa, ca, cmtx - 5, cmty)
+  }
+  ellipse {
+    center: (275, 884); radii: (18, 4); fill: #0A1014
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  rect {
+    x: 148; y: 884; width: 256; height: 4; radius: 2
+    fill: fade(#FFFFFF, 0.18)
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  // lid
+  rect "closed_lid" {
+    x: 150
+    y: 778
+    width: 250
+    height: 110
+    radius: 9
+    fill: @alu_face
+    stroke: fade(#FFFFFF, 0.38)
+    stroke_width: 1.2
+    stroke_align: inner
+    shadow: (0, 14, 26, fade(#000000, 0.45))
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  rect {
+    x: 150
+    y: 778
+    width: 250
+    height: 110
+    radius: 9
+    fill: fade(#26353C, 0.50)
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  // thin bevel, not a screen
+  rect {
+    x: 155; y: 783; width: 240; height: 100; radius: 7
+    fill: none
+    stroke: fade(#FFFFFF, 0.12); stroke_width: 1
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  // brushed aluminium lines
+  repeat "lid_brush" {
+    count: 5
+    line {
+      from: (160, 794 + i * 18); to: (390, 793 + i * 18)
+      stroke: fade(#FFFFFF, 0.045); stroke_width: 0.8
+      matrix: (ca, sa, -sa, ca, cmtx, cmty)
+    }
+  }
+  rect {
+    x: 228; y: 876; width: 94; height: 9; radius: 4
+    fill: #1A2227; stroke: fade(#C9D6E0, 0.18); stroke_width: 0.8
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  // seam between lid and base
+  line {
+    from: (156, 884); to: (394, 882)
+    stroke: #05090B; stroke_width: 2.2
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  ellipse {
+    center: (275, 885); radii: (20, 4); fill: #0A1014
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  rect {
+    x: 146; y: 906; width: 258; height: 6; radius: 3
+    fill: #A9B8C3; opacity: 0.65
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  // rubber feet
+  rect {
+    x: 176; y: 908; width: 26; height: 5; radius: 2.5; fill: #080D10
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  rect {
+    x: 348; y: 908; width: 26; height: 5; radius: 2.5; fill: #080D10
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  // glowing lid mark
+  path {
+    closed: true
+    fill: fade(#E9FBFF, 0.95)
+    glow: (22, fade(#65D9FF, 0.65))
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+    move(275, 820)
+    cubic(294, 822, 307, 838, 302, 858)
+    cubic(289, 851, 276, 838, 275, 820)
+    close()
+  }
+  path {
+    fill: none
+    stroke: fade(#FFFFFF, 0.85)
+    stroke_width: 1.3
+    cap: round
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+    move(275, 820)
+    cubic(279, 838, 290, 851, 302, 858)
+  }
+  circle { center: (275, 845); radius: 32 + 6 * (0.5 + 0.5 * wave(t, 0.30, 60)); fill: @screen_cyan_glow; blend: screen; opacity: 0.28 + 0.14 * lume }
+  // stickers
+  circle {
+    center: (198, 804); radius: 13
+    fill: #2E6F7C
+    stroke: fade(#D6F6FF, 0.35); stroke_width: 1
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  repeat "sticker_wave" {
+    count: 4
+    line {
+      from: (191 + i * 4.4, 808); to: (191 + i * 4.4, 800 + (i - 1.5) * 2)
+      stroke: #B8F26A; stroke_width: 1.2; cap: round
+      matrix: (ca, sa, -sa, ca, cmtx, cmty)
+    }
+  }
+  star {
+    center: (338, 800); radius: 12; inner_radius: 5; rays: 5
+    fill: #E6B761; stroke: fade(#6B4512, 0.6); stroke_width: 1
+    rotate: -14
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  rect {
+    x: 168; y: 862; width: 46; height: 20; radius: 10
+    fill: #B8F26A; stroke: fade(#2E4410, 0.5); stroke_width: 1
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  text {
+    at: (191, 876); baseline: true; align: center; content: "MESH"; size: 6; font: "mono"; weight: bold; fill: #2C3D12
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  circle {
+    center: (338, 866); radius: 9
+    fill: #7A67B8; stroke: fade(#E7DFFF, 0.4); stroke_width: 1
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  path {
+    fill: none; stroke: fade(#EFE6FF, 0.8); stroke_width: 1; cap: round
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+    move(333, 866); line(337, 862); line(341, 866); line(345, 862)
+  }
+  rect {
+    x: 280; y: 878; width: 38; height: 14; radius: 7
+    fill: #D97757; stroke: fade(#FFD6C4, 0.45); stroke_width: 1
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  text {
+    at: (299, 888); baseline: true; align: center; content: "v1.0"; size: 5; font: "mono"; fill: #2E120A
+    matrix: (ca, sa, -sa, ca, cmtx, cmty)
+  }
+  // USB-C cable leaving the left side
+  spline {
+    points: [(152, 852), (120, 880), (108, 918), (76, 946), (52, 980)]
+    tension: 0.5
+    stroke: #070B0D
+    stroke_width: 4
+    cap: round
+    shadow: (0, 3, 6, fade(#000000, 0.4))
+  }
+  spline {
+    points: [(152, 852), (120, 880), (108, 918), (76, 946), (52, 980)]
+    tension: 0.5
+    stroke: fade(#7FA0AE, 0.14)
+    stroke_width: 1.1
+    cap: round
+  }
+  rect { x: 146; y: 848; width: 12; height: 7; radius: 3; fill: #9FB0BB; stroke: fade(#EAF4F8, 0.4); stroke_width: 0.7; matrix: (ca, sa, -sa, ca, cmtx, cmty) }
+
+  // ═══ FOREGROUND OBJECTS ═══════════════════════════════════════════════════
+  // notebook + pen
+  rect { x: 1338; y: 932; width: 206; height: 58; radius: 5; fill: #1A292E; stroke: fade(#9FC8D2, 0.20); stroke_width: 1; shadow: (0, 8, 14, fade(#000000, 0.45)) }
+  rect { x: 1338; y: 932; width: 206; height: 5; radius: 2; fill: #D8C7A8; opacity: 0.55 }
+  text { at: (1352, 958); baseline: true; align: left; content: "STUDIO NOTES / 04"; size: 7; font: "mono"; letter_spacing: 1; fill: #7F9AA6 }
+  line { from: (1352, 970); to: (1440, 970); stroke: fade(#9FC8D2, 0.22); stroke_width: 1 }
+  line { from: (1352, 978); to: (1408, 978); stroke: fade(#9FC8D2, 0.16); stroke_width: 1 }
+  polygon { points: [(1468, 940), (1520, 966), (1514, 976), (1460, 950)]; fill: #C9A35E; stroke: fade(#3E2A10, 0.5); stroke_width: 1 }
+  polygon { points: [(1468, 940), (1478, 945), (1470, 950)]; fill: #EED7A8 }
+
+  // audio interface / small hardware
+  rect { x: 1382; y: 866; width: 178; height: 62; radius: 8; fill: #1B2428; stroke: fade(#C9D6E0, 0.22); stroke_width: 1; shadow: (0, 8, 16, fade(#000000, 0.45)) }
+  rect { x: 1388; y: 872; width: 166; height: 2; radius: 1; fill: fade(#FFFFFF, 0.16) }
+  repeat "knobs" {
+    count: 3
+    circle { center: (1408 + i * 44, 892); radius: 10; fill: #2B363B; stroke: fade(#AFC2CC, 0.35); stroke_width: 1 }
+    line { from: (1408 + i * 44, 892); to: (1408 + i * 44, 885); stroke: #E9F6FA; stroke_width: 1.4 }
+  }
+  circle { center: (1540, 892); radius: 8; fill: #102027; stroke: fade(#B8F26A, 0.45); stroke_width: 1 }
+  circle { center: (1540, 892); radius: 2; fill: #B8F26A; opacity: 0.9; glow: (8, fade(#B8F26A, 0.5)) }
+  text { at: (1392, 918); baseline: true; align: left; content: "MESH AUDIO / 04"; size: 5.5; font: "mono"; letter_spacing: 0.8; fill: #6D8792 }
+  repeat "diode" {
+    count: 6
+    rect { x: 1494 + i * 10; y: 914; width: 5; height: 3; radius: 1; fill: mix(#65D9FF, #B8F26A, i / 5.0); opacity: 0.25 + 0.55 * (0.5 + 0.5 * wave(t, 0.4, i * 40)) }
+  }
+
+  // coffee mug
+  ellipse { center: (1258, 964); radii: (76, 16); fill: fade(#000000, 0.45) }
+  path {
+    closed: true
+    fill: #B96540
+    stroke: fade(#FFD0A8, 0.30)
+    stroke_width: 1.2
+    move(1206, 886)
+    cubic(1208, 928, 1218, 956, 1252, 958)
+    cubic(1288, 956, 1300, 926, 1300, 886)
+    close()
+  }
+  ellipse { center: (1253, 886); radii: (47, 13); fill: #D88357; stroke: fade(#FFE0C2, 0.40); stroke_width: 1.2 }
+  ellipse { center: (1253, 887); radii: (38, 9.5); fill: #2A110A }
+  ellipse { center: (1253, 887); radii: (36, 8.6); fill: #3C190D }
+  ellipse { center: (1242, 885); radii: (14, 3.4); fill: fade(#FFC27A, 0.22); blend: screen }
+  path { fill: none; stroke: #B96540; stroke_width: 8; cap: round; move(1300, 900); cubic(1330, 900, 1332, 934, 1298, 938) }
+  path { fill: none; stroke: fade(#FFD0A8, 0.24); stroke_width: 1.4; cap: round; move(1214, 898); cubic(1214, 926, 1224, 944, 1244, 952) }
+
+  // goose logo on the mug
+  path {
+    closed: true
+    fill: fade(#F4EEE3, 0.82)
+    move(1236, 924)
+    cubic(1234, 912, 1240, 903, 1248, 902)
+    cubic(1256, 903, 1258, 912, 1254, 918)
+    cubic(1252, 923, 1250, 926, 1250, 930)
+    cubic(1246, 930, 1240, 930, 1236, 924)
+    close()
+  }
+  polygon { points: [(1254, 908), (1262, 911), (1254, 915)]; fill: #E8964F }
+  circle { center: (1247, 909); radius: 1.2; fill: #3B1B0F }
+
+  // steam — three rising ribbons
+  path {
+    fill: none
+    stroke: fade(#E9F9FF, 0.55)
+    stroke_width: 4.2
+    cap: round
+    move(1234, 872)
+    cubic(1218 + oscillate(t, 0.12, -5, 5), 840, 1246 + oscillate(t, 0.10, -5, 5, 80), 818, 1230 + oscillate(t, 0.08, -6, 6, 30), 786)
+    cubic(1238, 766, 1250, 752, 1244 + oscillate(t, 0.07, -4, 4, 140), 736)
+  }
+  path {
+    fill: none
+    stroke: fade(#E9F9FF, 0.42)
+    stroke_width: 3.2
+    cap: round
+    move(1254, 872)
+    cubic(1268 + oscillate(t, 0.11, -6, 6, 40), 842, 1244 + oscillate(t, 0.09, -5, 5, 150), 814, 1262 + oscillate(t, 0.08, -6, 6, 90), 784)
+    cubic(1272, 762, 1258, 748, 1260 + oscillate(t, 0.06, -4, 4, 220), 728)
+  }
+  path {
+    fill: none
+    stroke: fade(#E9F9FF, 0.30)
+    stroke_width: 2.6
+    cap: round
+    move(1272, 874)
+    cubic(1288 + oscillate(t, 0.10, -5, 5, 100), 848, 1266 + oscillate(t, 0.08, -5, 5, 40), 826, 1284 + oscillate(t, 0.07, -5, 5, 180), 798)
+    cubic(1292, 780, 1280, 764, 1284 + oscillate(t, 0.05, -4, 4, 300), 746)
+  }
+
+  // plant — left edge, tall and calm
+  ellipse { center: (66, 950); radii: (64, 14); fill: fade(#000000, 0.5) }
+  path {
+    closed: true
+    fill: #1B2D2A
+    stroke: fade(#9FC8B6, 0.18)
+    stroke_width: 1
+    move(20, 872)
+    line(112, 872)
+    line(102, 958)
+    line(30, 958)
+    close()
+  }
+  ellipse { center: (66, 872); radii: (46, 11); fill: #243A35 }
+  ellipse { center: (66, 874); radii: (38, 8); fill: #120E0B }
+  // stems and leaves, swaying
+  path { fill: none; stroke: #2F5B48; stroke_width: 4; cap: round; move(66, 870); cubic(58, 790, 42, 700, 26, 640) }
+  path { fill: none; stroke: #274C3D; stroke_width: 3; cap: round; move(70, 872); cubic(84, 800, 102, 736, 118, 690) }
+  path { fill: none; stroke: #35684F; stroke_width: 2.6; cap: round; move(74, 872); cubic(96, 820, 122, 796, 150, 778) }
+  ellipse { center: (26, 640); radii: (30, 12); fill: #2D5A46; stroke: fade(#8FC8A8, 0.22); stroke_width: 1; rotate: -48; translate: (0, sway) }
+  ellipse { center: (25, 641); radii: (21, 4); fill: fade(#79B892, 0.30); rotate: -48; translate: (0, sway) }
+  ellipse { center: (6, 678); radii: (26, 11); fill: #224A39; rotate: -18; translate: (0, sway) }
+  ellipse { center: (120, 690); radii: (28, 12); fill: #356B52; rotate: 42; translate: (0, sway) }
+  ellipse { center: (121, 690); radii: (19, 4); fill: fade(#79B892, 0.28); rotate: 42; translate: (0, sway) }
+  ellipse { center: (146, 776); radii: (30, 11); fill: #2C5944; rotate: 18; translate: (0, sway * 0.8) }
+  ellipse { center: (147, 776); radii: (20, 3.6); fill: fade(#79B892, 0.24); rotate: 18; translate: (0, sway * 0.8) }
+  ellipse { center: (44, 734); radii: (24, 9); fill: #3B7056; rotate: -32; translate: (0, sway * 1.1) }
+  ellipse { center: (94, 754); radii: (24, 9); fill: #265140; rotate: 24; translate: (0, sway * 0.9) }
+  ellipse { center: (12, 820); radii: (24, 10); fill: #1F4535; rotate: -60; translate: (0, sway * 0.7) }
+
+  // ═══ CABLES ═══════════════════════════════════════════════════════════════
+  spline {
+    points: [
+      (724, 872),
+      (696, 900),
+      (650, 918 + oscillate(t, 0.14, -3, 3, 20)),
+      (596, 906 + oscillate(t, 0.12, -2, 2, 80)),
+      (548, 930 + oscillate(t, 0.12, -3, 3, 140)),
+      (470, 948)
+    ]
+    tension: 0.5
+    stroke: #070B0D
+    stroke_width: 5
+    cap: round
+    shadow: (0, 3, 6, fade(#000000, 0.5))
+  }
+  spline {
+    points: [
+      (724, 872),
+      (696, 900),
+      (650, 918 + oscillate(t, 0.14, -3, 3, 20)),
+      (596, 906 + oscillate(t, 0.12, -2, 2, 80)),
+      (548, 930 + oscillate(t, 0.12, -3, 3, 140)),
+      (470, 948)
+    ]
+    tension: 0.5
+    stroke: fade(#7FA0AE, 0.16)
+    stroke_width: 1.4
+    cap: round
+  }
+  spline {
+    points: [
+      (1500, 782),
+      (1522, 812),
+      (1506, 840 + oscillate(t, 0.16, -2, 2, 40)),
+      (1524, 862)
+    ]
+    tension: 0.5
+    stroke: #070B0D
+    stroke_width: 4
+    cap: round
+  }
+  spline {
+    points: [
+      (1500, 782),
+      (1522, 812),
+      (1506, 840 + oscillate(t, 0.16, -2, 2, 40)),
+      (1524, 862)
+    ]
+    tension: 0.5
+    stroke: fade(#7FA0AE, 0.14)
+    stroke_width: 1.2
+    cap: round
+  }
+  ellipse { center: (1166, 952); radii: (24, 8); fill: none; stroke: #0B0F12; stroke_width: 3; rotate: 8 }
+  ellipse { center: (1178, 954); radii: (24, 8); fill: none; stroke: #0B0F12; stroke_width: 3; rotate: 8 }
+  ellipse { center: (1190, 956); radii: (24, 8); fill: none; stroke: #0B0F12; stroke_width: 3; rotate: 8 }
+  ellipse { center: (1166, 952); radii: (24, 8); fill: none; stroke: fade(#7FA0AE, 0.10); stroke_width: 1; rotate: 8 }
+
+  // ═══ SKETCHBOOK + LOOSE FEATHER ═══════════════════════════════════════════
+  ellipse { center: (552, 982); radii: (112, 13); fill: fade(#000000, 0.42) }
+  rect { x: 462; y: 934; width: 182; height: 44; radius: 4; fill: #1B2A30; stroke: fade(#9FC8D2, 0.22); stroke_width: 1; shadow: (0, 8, 12, fade(#000000, 0.35)) }
+  rect { x: 466; y: 972; width: 174; height: 4; radius: 2; fill: #C9B89E; opacity: 0.55 }
+  line { from: (470, 938); to: (470, 976); stroke: fade(#7FA0AE, 0.28); stroke_width: 1.5 }
+  line { from: (612, 936); to: (612, 976); stroke: fade(#B6544A, 0.55); stroke_width: 4 }
+  // loose goose feather
+  path {
+    closed: true
+    fill: fade(#000000, 0.24)
+    move(508, 956)
+    cubic(532, 944, 568, 940, 596, 948)
+    cubic(570, 958, 532, 964, 508, 956)
+    close()
+    translate: (3, 4)
+  }
+  path {
+    closed: true
+    fill: #F6EFE3
+    stroke: fade(#C3B09A, 0.65)
+    stroke_width: 1
+    move(508, 952)
+    cubic(532, 940, 568, 936, 596, 944)
+    cubic(570, 954, 532, 960, 508, 952)
+    close()
+  }
+  path { fill: none; stroke: fade(#B4A089, 0.65); stroke_width: 1.1; cap: round; move(510, 952); cubic(530, 948, 560, 944, 590, 944) }
+  path { fill: none; stroke: fade(#C9B8A3, 0.45); stroke_width: 0.8; cap: round; move(524, 947); line(528, 943); move(540, 946); line(544, 942); move(556, 945); line(560, 941) }
+  // brass pen
+  polygon { points: [(636, 944), (660, 962), (655, 968), (630, 950)]; fill: #C9A35E; stroke: fade(#4A3418, 0.6); stroke_width: 1 }
+  polygon { points: [(660, 962), (668, 966), (655, 968)]; fill: #E8D2A4 }
+
+  // ═══ LIGHT / ATMOSPHERE ═══════════════════════════════════════════════════
+  // cool shaft from the window
+  polygon {
+    points: [(1050, 120), (1390, 120), (1100, 940), (700, 940)]
+    fill: @glass_sheen
+    blend: screen
+    opacity: 0.30
+  }
+  ellipse { center: (760, 660); radii: (460, 140); fill: fade(#5FB8CC, 0.035); blend: screen }
+  ellipse { center: (1000, 830); radii: (520, 200); fill: fade(#2E7C90, 0.03); blend: screen }
+
+  // floating dust motes
+  repeat "dust" {
+    count: 26
+    let dx = 60 + i * 58 + 18 * wave(i * 12.0, 0.05, 40)
+    let dy = 120 + (i - floor(i / 7) * 7) * 116
+    circle {
+      center: (dx + oscillate(t, 0.03 + (i - floor(i / 7) * 7) * 0.004, -12, 12, i * 31), dy + oscillate(t, 0.024, -16, 16, i * 47))
+      radius: 1.2 + (i - floor(i / 7) * 7) * 0.62
+      fill: mix(#FFE0B0, #BDF1FF, (i - floor(i / 7) * 7) / 7.0)
+      opacity: 0.28 + 0.42 * (0.5 + 0.5 * wave(t, 0.09, i * 67))
+      glow: (5, fade(#FFE0B0, 0.16))
+    }
+  }
+  // foreground bokeh
+  circle { center: (120 + oscillate(t, 0.02, -10, 10), 710 + oscillate(t, 0.017, -8, 8, 60)); radius: 17; fill: @bokeh_warm; blend: screen; opacity: 0.7 }
+  circle { center: (1560 + oscillate(t, 0.022, -8, 8, 100), 760 + oscillate(t, 0.018, -6, 6)); radius: 13; fill: @bokeh_warm; blend: screen; opacity: 0.6 }
+  circle { center: (1470 + oscillate(t, 0.025, -10, 10, 140), 640 + oscillate(t, 0.02, -8, 8, 30)); radius: 12; fill: @bokeh_cool; blend: screen; opacity: 0.55 }
+
+  // window beam across the desk
+  polygon {
+    points: [(1010, 600), (1330, 600), (1580, 1000), (1060, 1000)]
+    fill: fade(#BFEFFF, 0.035)
+    blend: screen
+  }
+  polygon {
+    points: [(700, 600), (820, 600), (900, 1000), (600, 1000)]
+    fill: fade(#FFB45C, 0.025)
+    blend: screen
+  }
+
+  // cinematic grade
+  ellipse { center: (150, 640); radii: (400, 480); fill: fade(#FFB45C, 0.055); blend: screen }
+  ellipse { center: (1080, 690); radii: (420, 360); fill: fade(#65D9FF, 0.035); blend: screen }
+  ellipse { center: (560, 700); radii: (300, 280); fill: fade(#FFCF9A, 0.025); blend: overlay }
+
+  // vignette + film grain
+  rect { x: 0; y: 0; width: 1600; height: 1000; fill: @vignette }
+  rect { x: 0; y: 0; width: 1600; height: 1000; fill: @wall_tooth; blend: overlay; opacity: 0.55 }
+
+  // bottom foreground silhouette — out-of-focus leaf, frames the corner
+  path {
+    closed: true
+    fill: fade(#06100D, 0.88)
+    move(0, 1000)
+    cubic(0, 950, 26, 912, 58, 900)
+    cubic(96, 918, 108, 954, 96, 1000)
+    close()
+  }
+  path {
+    closed: true
+    fill: fade(#08120F, 0.82)
+    move(1600, 1000)
+    cubic(1600, 958, 1576, 930, 1548, 922)
+    cubic(1518, 940, 1510, 968, 1520, 1000)
+    close()
+  }
+}

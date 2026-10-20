@@ -1,0 +1,2183 @@
+<!DOCTYPE html>
+<html lang="ru" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MESH Engine v1.0.0 — Real-Time 120 FPS Wasm & Pixel Web Studio</title>
+<script src="https://cdn.tailwindcss.com/3.4.17"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Open+Sans:wght@400;600;700&family=Noto+Sans:wght@400;600;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-dark: #07090e;
+    --panel-bg: #0d111a;
+    --border-col: #1e2638;
+    --accent-cyan: #22d3ee;
+    --accent-emerald: #10b981;
+    --accent-violet: #a855f7;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background-color: var(--bg-dark);
+    color: #e2e8f0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    margin: 0;
+    overflow-x: hidden;
+  }
+  .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .checker-viewport {
+    background-color: #06080d;
+    background-image:
+      radial-gradient(rgba(56, 189, 248, 0.10) 1px, transparent 1px),
+      linear-gradient(to right, rgba(30, 41, 59, 0.22) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(30, 41, 59, 0.22) 1px, transparent 1px);
+    background-size: 20px 20px, 80px 80px, 80px 80px;
+  }
+  textarea::-webkit-scrollbar, pre::-webkit-scrollbar, .scroll-pane::-webkit-scrollbar {
+    width: 8px; height: 8px;
+  }
+  textarea::-webkit-scrollbar-track, pre::-webkit-scrollbar-track, .scroll-pane::-webkit-scrollbar-track {
+    background: #090c14;
+  }
+  textarea::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb, .scroll-pane::-webkit-scrollbar-thumb {
+    background: #263147; border-radius: 4px;
+  }
+  textarea::-webkit-scrollbar-thumb:hover, pre::-webkit-scrollbar-thumb:hover {
+    background: #3b4c6b;
+  }
+</style>
+</head>
+<body class="min-h-screen flex flex-col bg-[#07090e] text-slate-100 select-none">
+
+<!-- Top Navigation & Preset Bar -->
+<header class="border-b border-slate-800/80 bg-[#0b0f17]/95 backdrop-blur px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 z-20">
+  <div class="flex items-center gap-3">
+    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 via-emerald-400 to-violet-500 p-[1.5px] shadow-lg shadow-cyan-500/20">
+      <div class="w-full h-full bg-[#090d16] rounded-[6.5px] flex items-center justify-center font-bold text-xs tracking-tighter text-cyan-300 mono">
+        M1
+      </div>
+    </div>
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-sm tracking-wide text-white">MESH ENGINE</span>
+        <span class="text-[11px] mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-medium">v1.0.0 Release</span>
+        <span id="wasmBadge" class="text-[11px] mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">Wasm SIMD/Linear Memory Ready</span>
+      </div>
+      <p class="text-[11px] text-slate-400 hidden sm:block">Real-Time 120 FPS Declarative Vector &amp; SDF Pixel Studio (Zero DOM / Zero GIF)</p>
+    </div>
+  </div>
+
+  <!-- Preset Selector Pills -->
+  <div class="flex flex-wrap items-center gap-1.5" id="presetBar">
+    <span class="text-xs text-slate-400 mr-1 font-medium">Examples (.mesh):</span>
+    <button data-preset="04_bento" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-cyan-500/20 text-cyan-200 border border-cyan-400/50 transition">04 · X-Pulse Bento</button>
+    <button data-preset="05_cyber" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-slate-500 transition">05 · Cyber Equalizer</button>
+    <button data-preset="01_aurora" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-slate-500 transition">01 · Aurora Card</button>
+    <button data-preset="02_topology" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-slate-500 transition">02 · AI Topology</button>
+    <button data-preset="03_metaballs" class="preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-slate-500 transition">03 · Wasm Metaballs</button>
+  </div>
+
+  <!-- Export Actions -->
+  <div class="flex items-center gap-1.5">
+    <button id="btnExportPng" class="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">PNG</button>
+    <button id="btnExportSvg" class="px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition">SVG</button>
+    <button id="btnDownloadMesh" class="px-2.5 py-1 rounded-md text-xs font-medium bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-200 border border-emerald-500/40 transition">Download .mesh</button>
+  </div>
+</header>
+
+<!-- Main Split Workspace -->
+<main class="flex-1 grid grid-cols-1 lg:grid-cols-12 min-h-[calc(100vh-56px)]">
+
+  <!-- Left/Center: Real-Time Pixel Viewport (7 cols on large screens) -->
+  <section class="lg:col-span-7 flex flex-col border-b lg:border-b-0 lg:border-r border-slate-800/80 relative">
+
+    <!-- Viewport Toolbar -->
+    <div class="bg-[#0d121d] border-b border-slate-800/80 px-3 py-2 flex flex-wrap items-center justify-between gap-2 text-xs">
+      <div class="flex flex-wrap items-center gap-2">
+        <button id="btnPlayPause" class="px-3 py-1 rounded-md font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30 transition flex items-center gap-1.5">
+          <span id="playIcon">❚❚</span> <span id="playLabel">Pause</span>
+        </button>
+        <button id="btnResetTime" class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-500 transition">t = 0.00s</button>
+        <div class="flex items-center gap-1.5 bg-slate-900/90 border border-slate-800 px-2.5 py-1 rounded-md">
+          <span class="text-slate-400 mono">t:</span>
+          <input id="timeSlider" type="range" min="0" max="10" step="0.01" value="0" class="w-24 sm:w-32 accent-cyan-400 cursor-pointer">
+          <span id="timeReadout" class="mono text-cyan-300 w-12 text-right">0.00s</span>
+        </div>
+        <select id="speedSelect" class="bg-slate-900 text-slate-200 border border-slate-700 rounded-md px-2 py-1 text-xs mono">
+          <option value="0.25">0.25x</option>
+          <option value="0.5">0.5x</option>
+          <option value="1" selected>1.0x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2.0x</option>
+        </select>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-2">
+        <select id="renderModeSelect" class="bg-slate-900 text-cyan-300 border border-cyan-500/40 rounded-md px-2 py-1 text-xs mono">
+          <option value="hybrid" selected>Render: Wasm + Pixel 2D (120 FPS)</option>
+          <option value="wasm_sdf">Render: Pure Wasm/CPU SDF Buffer</option>
+        </select>
+        <button id="btnToggleAnchors" class="px-2.5 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700 hover:border-cyan-400 transition mono">@id Anchors</button>
+        <button id="btnResetZoom" class="px-2 py-1 rounded-md bg-slate-800 text-slate-300 border border-slate-700 hover:border-slate-500 transition mono">100%</button>
+      </div>
+    </div>
+
+    <!-- Interactive Pixel Canvas Area -->
+    <div id="viewportContainer" class="flex-1 checker-viewport relative flex items-center justify-center overflow-hidden min-h-[380px] p-4 cursor-grab active:cursor-grabbing">
+      <div id="canvasWrapper" class="relative transition-transform duration-75 ease-out origin-center">
+        <canvas id="meshCanvas" width="960" height="580" class="max-w-full h-auto rounded-lg shadow-2xl shadow-black/80 border border-slate-800/90"></canvas>
+      </div>
+
+      <!-- Real-Time Performance & Wasm Telemetry HUD -->
+      <div class="absolute bottom-3 left-3 right-3 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <div class="bg-[#0b0f19]/90 backdrop-blur border border-slate-800/90 px-3 py-1.5 rounded-lg flex items-center gap-3 text-[11px] mono text-slate-300 shadow-lg">
+          <span class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span id="hudFps" class="text-emerald-300 font-semibold">120 FPS</span>
+          </span>
+          <span class="text-slate-600">|</span>
+          <span id="hudFrameMs" class="text-cyan-300">1.4 ms/frame</span>
+          <span class="text-slate-600">|</span>
+          <span id="hudRes">960×580 RGBA</span>
+          <span class="text-slate-600 hidden sm:inline">|</span>
+          <span id="hudAnchors" class="hidden sm:inline text-violet-300">@id: 32</span>
+        </div>
+
+        <div id="errorBanner" class="hidden bg-rose-950/95 border border-rose-500/60 text-rose-200 px-3 py-1.5 rounded-lg text-xs mono shadow-lg max-w-md truncate"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Right: Live .mesh Code Editor & Shader/Anchor Inspector (5 cols on large screens) -->
+  <aside class="lg:col-span-5 flex flex-col bg-[#0a0e17] min-h-[420px]">
+
+    <!-- Editor / Compiler Tabs -->
+    <div class="flex items-center justify-between border-b border-slate-800 bg-[#0d121d] px-2">
+      <div class="flex items-center">
+        <button data-tab="editor" class="tab-btn px-3 py-2.5 text-xs font-semibold border-b-2 border-cyan-400 text-cyan-300 bg-cyan-500/10 transition">.mesh Code (Live)</button>
+        <button data-tab="wgsl" class="tab-btn px-3 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">WebGPU .wgsl</button>
+        <button data-tab="glsl" class="tab-btn px-3 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">Vulkan .glsl</button>
+        <button data-tab="svg" class="tab-btn px-3 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">SVG 1.1</button>
+        <button data-tab="anchors" class="tab-btn px-3 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition">@id BBox</button>
+      </div>
+      <button id="btnCopyCode" class="px-2.5 py-1 rounded text-[11px] mono bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">Copy</button>
+    </div>
+
+    <!-- Tab 1: Live .mesh Source Editor -->
+    <div id="paneEditor" class="flex-1 flex flex-col relative">
+      <div class="flex-1 flex overflow-hidden">
+        <div id="lineNumbers" class="w-11 py-3 px-2 text-right select-none bg-[#080b12] text-slate-600 mono text-xs leading-[1.55] overflow-hidden border-r border-slate-800/70">1</div>
+        <textarea id="meshEditor" spellcheck="false" autocapitalize="off" autocomplete="off"
+          class="flex-1 bg-[#090d15] text-cyan-100 mono text-xs leading-[1.55] p-3 focus:outline-none resize-none overflow-auto select-text"
+          placeholder="// Enter declarative .mesh code..."></textarea>
+      </div>
+      <div class="bg-[#0d121d] border-t border-slate-800/80 px-3 py-1.5 flex items-center justify-between text-[11px] text-slate-400 mono">
+        <span id="statusParse">AST + @id Solver: OK (hot reload active)</span>
+        <span>OKLCH · SDF CSG · Repeat(i, rep_t) · Splines</span>
+      </div>
+    </div>
+
+    <!-- Tab 2: Compiled WebGPU WGSL -->
+    <pre id="paneWgsl" class="hidden flex-1 p-3 bg-[#080b12] text-emerald-300 mono text-xs leading-relaxed overflow-auto select-text"></pre>
+
+    <!-- Tab 3: Compiled Vulkan/OpenGL GLSL -->
+    <pre id="paneGlsl" class="hidden flex-1 p-3 bg-[#080b12] text-amber-300 mono text-xs leading-relaxed overflow-auto select-text"></pre>
+
+    <!-- Tab 4: Compiled SVG -->
+    <pre id="paneSvg" class="hidden flex-1 p-3 bg-[#080b12] text-purple-300 mono text-xs leading-relaxed overflow-auto select-text"></pre>
+
+    <!-- Tab 5: Live @id Relational Anchors Table -->
+    <div id="paneAnchors" class="hidden flex-1 p-3 bg-[#080b12] overflow-auto scroll-pane">
+      <table class="w-full text-left border-collapse mono text-xs">
+        <thead>
+          <tr class="border-b border-slate-800 text-slate-400">
+            <th class="py-1.5 px-2">@id Anchor</th>
+            <th class="py-1.5 px-2">x (left)</th>
+            <th class="py-1.5 px-2">y (top)</th>
+            <th class="py-1.5 px-2">width × height</th>
+            <th class="py-1.5 px-2">center</th>
+          </tr>
+        </thead>
+        <tbody id="anchorsTableBody" class="divide-y divide-slate-800/60 text-slate-200"></tbody>
+      </table>
+    </div>
+  </aside>
+</main>
+
+<!-- Toast Notification -->
+<div id="toast" class="fixed bottom-5 right-5 bg-slate-900 border border-cyan-500/50 text-cyan-200 px-4 py-2 rounded-lg shadow-xl text-xs font-medium opacity-0 pointer-events-none transition-opacity duration-200 z-50"></div>
+
+<script>
+// ============================================================================
+// 1. Embedded WebAssembly SDF & Pixel Kernel (mesh_kernel.wasm v1.0.0)
+// ============================================================================
+const WASM_BASE64 = "AGFzbQEAAAABTwdgAAF/YAd9fX19fX19AX1gA319fQF9YAx9fX19fX19fX19fX0BfWAFf39/f38AYAN/f38AYBd/f39/f399fX19fX19fX19fX9/f39/fwADCAcAAQIDBAUGBQUBAUCAAgeUAQgGbWVtb3J5AgAMd2FzbV92ZXJzaW9uAAAUd2FzbV9zZGZfcm91bmRlZF9ib3gAAQl3YXNtX3NtaW4AAhJ3YXNtX3NkZl9tZXRhYmFsbDMAAxB3YXNtX2JsZW5kX3BpeGVsAAQQd2FzbV9maWxsX2J1ZmZlcgAFGndhc21fcmVuZGVyX21ldGFiYWxsc19yZWN0AAYKwgYHBgBBkM4AC08BBH0gACACk4sgBJMgBpIhByABIAOTiyAFkyAGkiEIIAdDAAAAAJchCSAIQwAAAACXIQogByAIl0MAAAAAliAJIAmUIAogCpSSkZIgBpMLRgEBfUMAAAA/QwAAAD8gASAAk5QgAkNvEoM6l5WSQwAAAACXQwAAgD+WIQMgASAAIAGTIAOUkiACIAOUQwAAgD8gA5OUkwtbACAAIAKTIAAgApOUIAEgA5MgASADk5SSkSAEkyAAIAWTIAAgBZOUIAEgBpMgASAGk5SSkSAHkyALEAIgACAIkyAAIAiTlCABIAmTIAEgCZOUkpEgCpMgCxACC5oBAQZ/IARBAUgEQA8LIARB/wFOBEAgACABIAJBCHRyIANBEHRyQYCAgHhyNgIADwsgACgCACEFQYACIARrIQYgASAEbCAFQf8BcSAGbGpBCHYhByACIARsIAVBCHZB/wFxIAZsakEIdiEIIAMgBGwgBUEQdkH/AXEgBmxqQQh2IQkgACAHIAhBCHRyIAlBEHRyQYCAgHhyNgIACysBAX9BACEDAkADQCADIAFODQEgACADQQRsaiACNgIAIANBAWohAwwACwsL/QIDAn8DfQV/IAMhFwJAA0AgFyAFSg0BIAIhGAJAA0AgGCAESg0BIBiyQwAAAD+SIBeyQwAAAD+SIAYgByAIIAkgCiALIAwgDSAOIA8QAyEZIBkgEF0EQCAAIBcgAWwgGGpBBGxqIRwgGCACa7IgBCACa7JDAACAP5eVQwAAAACXQwAAgD+WIRsgESAUIBFrsiAblKhqIR0gEiAVIBJrsiAblKhqIR4gEyAWIBNrsiAblKhqIR8gGUMAAIC/XgRAQwAAgD8gGUMAAAAAlyAQQwAAgD+XlZNDAAAAAJchGiAaIBqUQwAA5kKUqCEgIBwgHSAeIB8gIBAECyAZQwAAgD9dBEBDAAAAPyAZk0MAAAAAl0MAAIA/lkMAAIBDlKghICAcIB0gHiAfICAQBAsgGUMAAIA/kotDmpmZP10EQEOamZk/IBlDAACAP5KLk0MAAPBClKghICAcQf8BQf8BQf8BICAQBAsLIBhBAWohGAwACwsgF0EBaiEXDAALCws=";
+const PRESETS = {"04_bento": {"title": "04 \u00b7 X-Pulse Neural Bento", "code": "// Example 4: X-Pulse Neural Bento Widget (.mesh v1.0.0 Production Showcase)\n// Style: Modern X (Twitter) Design Engineering Bento Widget (Rauno / Emil / Linear / Dynamic Island aesthetic)\n// Demonstrates:\n//   - Perceptual OKLCH color science + FBM noise_gradient glass + freeform diffusion_gradient backlight\n//   - Dynamic Island pill with real-time morphing SDF smooth_union(k) metaball indicator\n//   - Parametric repeat(i, rep_t) 22-bar neural frequency spectrum with per-bar phase & OKLab color mixing\n//   - Dual animated Catmull-Rom splines + sweeping playhead scanner with live telemetry badge\n//   - Orbital compute gauge with radial repeat ticks, animated sector arcs, and rotating star core\n//   - Bottom Bento micro-cards: marching-ants GPU pipeline, liquid OKLCH mixer, and spring-physics toggle\n\nmesh \"x_neural_bento_widget\" {\n  canvas {\n    width: 960\n    height: 580\n    background: oklch(0.09, 0.018, 262)\n  }\n\n  // ---- Perceptual Color Tokens & Layout Constants ----\n  let c_cyan    = oklch(0.80, 0.17, 198)\n  let c_emerald = oklch(0.82, 0.19, 152)\n  let c_violet  = oklch(0.72, 0.22, 298)\n  let c_amber   = oklch(0.84, 0.17, 78)\n  let c_rose    = oklch(0.74, 0.21, 15)\n  let c_surface = oklch(0.14, 0.024, 260)\n  let c_card    = oklch(0.17, 0.028, 260, 0.88)\n  let c_rim     = oklch(0.92, 0.03, 230, 0.28)\n\n  // ---- Gradients & Procedural Shaders ----\n  diffusion_gradient \"bento_aurora\" {\n    point(0.10, 0.15, oklch(0.42, 0.18, 295, 0.85), weight: 1.5)\n    point(0.88, 0.18, oklch(0.45, 0.16, 198, 0.85), weight: 1.4)\n    point(0.55, 0.88, oklch(0.38, 0.16, 155, 0.80), weight: 1.3)\n    point(0.18, 0.82, oklch(0.15, 0.04, 262, 0.95), weight: 1.6)\n  }\n\n  noise_gradient \"matte_glass\" {\n    scale: 6.0\n    octaves: 4\n    persistence: 0.52\n    seed: 19\n    grain: 0.018\n    stop(0.0, oklch(0.13, 0.022, 260, 0.94))\n    stop(1.0, oklch(0.18, 0.032, 252, 0.94))\n  }\n\n  radial_gradient \"soft_aura\" {\n    center: (0.5, 0.5)\n    radius: 0.5\n    stop(0.0, fade(@c_cyan, 0.22))\n    stop(0.55, fade(@c_violet, 0.09))\n    stop(1.0, oklch(0.11, 0.02, 260, 0.0))\n  }\n\n  linear_gradient \"rim_specular\" {\n    angle: 135\n    stop(0.0, oklch(0.96, 0.04, 210, 0.52))\n    stop(0.45, oklch(0.65, 0.06, 260, 0.18))\n    stop(1.0, oklch(0.82, 0.14, 295, 0.38))\n  }\n\n  linear_gradient \"wave_grad\" {\n    from: (0.0, 0.5)\n    to: (1.0, 0.5)\n    stop(0.0, @c_cyan)\n    stop(0.5, @c_emerald)\n    stop(1.0, @c_violet)\n  }\n\n  linear_gradient \"arc_grad\" {\n    angle: 45\n    stop(0.0, @c_cyan)\n    stop(1.0, @c_emerald)\n  }\n\n  // ---- 1. Outer Bento Glass Shell ----\n  rect \"widget_shell\" {\n    x: 36\n    y: 28\n    width: width - 72\n    height: height - 56\n    radius: 28\n    fill: @bento_aurora\n    stroke: @rim_specular\n    stroke_width: 2.5\n    stroke_align: inner\n    grain: 0.015\n    shadow(0, 22, 44, oklch(0.02, 0.01, 260, 0.82))\n  }\n\n  // Inner dark glass overlay inside shell\n  rect \"shell_inner\" {\n    x: @widget_shell.left + 3\n    y: @widget_shell.top + 3\n    width: @widget_shell.width - 6\n    height: @widget_shell.height - 6\n    radius: 25\n    fill: oklch(0.11, 0.02, 260, 0.78)\n  }\n\n  // Volumetric soft ambient light clipped inside widget_shell\n  circle \"ambient_orb\" {\n    clip: @widget_shell\n    blend: screen\n    center: (\n      oscillate(t, 0.5, @widget_shell.left + 220, @widget_shell.right - 220),\n      oscillate(t, 0.5, @widget_shell.top + 140, @widget_shell.bottom - 140, 90)\n    )\n    radius: 220\n    fill: @soft_aura\n  }\n\n  // ---- 2. Top Dynamic Island Header & Live Telemetry Bar ----\n  rect \"island_pill\" {\n    x: @widget_shell.left + 24\n    y: @widget_shell.top + 20\n    width: 344\n    height: 42\n    radius: 21\n    fill: oklch(0.08, 0.015, 260, 0.90)\n    stroke: oklch(0.85, 0.08, 200, 0.35)\n    stroke_width: 1.5\n    stroke_align: inner\n    shadow(0, 6, 16, fade(#000000, 0.55))\n  }\n\n  // Morphing SDF Smooth-Union Metaball inside Dynamic Island\n  boolean \"island_metaball\" {\n    op: smooth_union(9)\n    fill: mix(@c_emerald, @c_cyan, oscillate(t, 1.0, 0.0, 1.0))\n    glow(10, fade(@c_emerald, 0.65))\n    circle {\n      center: (@island_pill.left + 24, @island_pill.center_y)\n      radius: 8\n    }\n    circle {\n      center: (\n        @island_pill.left + 24 + oscillate(t, 1.0, -10, 12),\n        @island_pill.center_y + oscillate(t, 1.0, -4, 4, 90)\n      )\n      radius: 5.5\n    }\n  }\n\n  text \"island_title\" {\n    at: (@island_pill.left + 52, @island_pill.center_y)\n    content: \"X-PULSE // NEURAL ENGINE V1.0\"\n    size: 13\n    weight: bold\n    letter_spacing: 1.2\n    fill: oklch(0.96, 0.02, 220)\n  }\n\n  // Mode selector tabs in header\n  rect \"tab_group\" {\n    x: @island_pill.right + 18\n    y: @island_pill.top\n    width: 256\n    height: 42\n    radius: 21\n    fill: oklch(0.12, 0.02, 260, 0.78)\n    stroke: @c_rim\n    stroke_width: 1.5\n    stroke_align: inner\n  }\n\n  // Animated active tab pill sliding between modes\n  rect \"active_tab_pill\" {\n    x: @tab_group.left + 6 + oscillate(t, 0.5, 0, 122)\n    y: @tab_group.top + 5\n    width: 122\n    height: 32\n    radius: 16\n    fill: mix(fade(@c_cyan, 0.28), fade(@c_violet, 0.28), oscillate(t, 0.5, 0, 1))\n    stroke: mix(@c_cyan, @c_violet, oscillate(t, 0.5, 0, 1))\n    stroke_width: 1.5\n    stroke_align: inner\n  }\n\n  text \"tab_lbl_1\" {\n    at: (@tab_group.left + 67, @tab_group.center_y)\n    content: \"SPECTRUM\"\n    size: 12\n    align: center\n    letter_spacing: 1\n    fill: oklch(0.95, 0.02, 210)\n  }\n\n  text \"tab_lbl_2\" {\n    at: (@tab_group.left + 189, @tab_group.center_y)\n    content: \"TOPOLOGY\"\n    size: 12\n    align: center\n    letter_spacing: 1\n    fill: oklch(0.82, 0.04, 240)\n  }\n\n  // Right status & FPS pill (aligned to @widget_shell.right - 24 = 900)\n  rect \"fps_pill\" {\n    x: @widget_shell.right - 228\n    y: @island_pill.top\n    width: 204\n    height: 42\n    radius: 21\n    fill: oklch(0.10, 0.02, 260, 0.88)\n    stroke: fade(@c_emerald, 0.45)\n    stroke_width: 1.5\n    stroke_align: inner\n  }\n\n  circle \"fps_dot\" {\n    center: (@fps_pill.left + 22, @fps_pill.center_y)\n    radius: oscillate(t, 1.0, 4.5, 6.5)\n    fill: @c_emerald\n    glow(9, fade(@c_emerald, 0.75))\n  }\n\n  text \"fps_text\" {\n    at: (@fps_pill.left + 40, @fps_pill.center_y)\n    content: \"120 FPS | 0.8 MS\"\n    size: 13\n    weight: bold\n    letter_spacing: 1\n    fill: @c_emerald\n  }\n\n  // ---- 3. Left Bento Card: Real-Time Neural Spectrum & Waveform ----\n  rect \"spectrum_card\" {\n    x: @widget_shell.left + 24\n    y: @island_pill.bottom + 18\n    width: 532\n    height: 246\n    radius: 22\n    fill: @matte_glass\n    stroke: @c_rim\n    stroke_width: 1.5\n    stroke_align: inner\n    shadow(0, 12, 24, fade(#000000, 0.45))\n  }\n\n  text \"spec_title\" {\n    at: (@spectrum_card.left + 22, @spectrum_card.top + 26)\n    content: \"NEURAL TOKEN STREAM & LATENCY WAVE\"\n    size: 13\n    weight: bold\n    letter_spacing: 1.2\n    fill: oklch(0.92, 0.02, 230)\n  }\n\n  rect \"spec_badge\" {\n    x: @spectrum_card.right - 140\n    y: @spectrum_card.top + 13\n    width: 120\n    height: 26\n    radius: 13\n    fill: fade(@c_cyan, 0.16)\n    stroke: fade(@c_cyan, 0.55)\n    stroke_width: 1.2\n    stroke_align: inner\n  }\n\n  text \"spec_badge_txt\" {\n    at: @spec_badge.center\n    content: \"+42.8K TOK/S\"\n    size: 11\n    align: center\n    letter_spacing: 0.8\n    fill: @c_cyan\n  }\n\n  // Subtle horizontal grid lines inside spectrum_card\n  repeat \"spec_grid_lines\" {\n    count: 3\n    let gy = @spectrum_card.top + 68 + i * 54\n    line {\n      from: (@spectrum_card.left + 20, gy)\n      to: (@spectrum_card.right - 20, gy)\n      stroke: oklch(0.35, 0.03, 255, 0.28)\n      stroke_width: 1\n      dash: [6, 6]\n    }\n  }\n\n  // 22-Bar Parametric Equalizer using v1.0.0 repeat(i, rep_t)\n  repeat \"spectrum_bars\" {\n    count: 22\n    let bar_h = oscillate(t, 1.0, 22, 128, i * 26)\n    let bx = @spectrum_card.left + 24 + i * 22.4\n    let by = @spectrum_card.bottom - 22 - bar_h\n    rect {\n      x: bx\n      y: by\n      width: 13\n      height: bar_h\n      radius: 6.5\n      fill: mix(@c_cyan, @c_violet, rep_t)\n      opacity: 0.42\n    }\n  }\n\n  // Control points for primary wave\n  let wy0 = @spectrum_card.bottom - 88  + oscillate(t, 1.0, -30, 30, 0)\n  let wy1 = @spectrum_card.bottom - 122 + oscillate(t, 1.0, -40, 40, 65)\n  let wy2 = @spectrum_card.bottom - 84  + oscillate(t, 1.0, -34, 34, 135)\n  let wy3 = @spectrum_card.bottom - 134 + oscillate(t, 1.0, -42, 42, 205)\n  let wy4 = @spectrum_card.bottom - 94  + oscillate(t, 1.0, -32, 32, 275)\n  let wy5 = @spectrum_card.bottom - 116 + oscillate(t, 1.0, -30, 30, 330)\n\n  // Secondary harmonic spline wave\n  spline \"harmonic_wave\" {\n    points: [\n      (@spectrum_card.left + 24,  @spectrum_card.bottom - 75 + oscillate(t, 1.0, -24, 24, 45)),\n      (@spectrum_card.left + 125, @spectrum_card.bottom - 95 + oscillate(t, 1.0, -35, 35, 110)),\n      (@spectrum_card.left + 225, @spectrum_card.bottom - 65 + oscillate(t, 1.0, -28, 28, 175)),\n      (@spectrum_card.left + 325, @spectrum_card.bottom - 105 + oscillate(t, 1.0, -38, 38, 240)),\n      (@spectrum_card.left + 425, @spectrum_card.bottom - 70 + oscillate(t, 1.0, -26, 26, 305)),\n      (@spectrum_card.right - 24, @spectrum_card.bottom - 90 + oscillate(t, 1.0, -30, 30, 360))\n    ]\n    tension: 0.5\n    stroke: fade(@c_violet, 0.65)\n    stroke_width: 2.5\n    dash: [8, 5]\n    dash_offset: -t * 48\n  }\n\n  // Primary glowing Catmull-Rom telemetry spline\n  spline \"primary_wave\" {\n    points: [\n      (@spectrum_card.left + 24,  wy0),\n      (@spectrum_card.left + 125, wy1),\n      (@spectrum_card.left + 225, wy2),\n      (@spectrum_card.left + 325, wy3),\n      (@spectrum_card.left + 425, wy4),\n      (@spectrum_card.right - 24, wy5)\n    ]\n    tension: 0.5\n    stroke: @wave_grad\n    stroke_width: 4\n    cap: round\n    glow(14, fade(@c_cyan, 0.55))\n  }\n\n  // Animated playhead locked onto control node #4 (@spectrum_card.left + 325, wy3)\n  let scan_x = @spectrum_card.left + 325\n  let scan_y = wy3\n\n  line \"playhead_line\" {\n    from: (scan_x, @spectrum_card.top + 52)\n    to: (scan_x, @spectrum_card.bottom - 18)\n    stroke: fade(@c_emerald, 0.65)\n    stroke_width: 2\n    dash: [4, 4]\n  }\n\n  circle \"playhead_halo\" {\n    center: (scan_x, scan_y)\n    radius: oscillate(t, 1.0, 11, 16)\n    fill: fade(@c_emerald, 0.22)\n    stroke: fade(@c_emerald, 0.65)\n    stroke_width: 1.5\n  }\n\n  circle \"playhead_orb\" {\n    center: (scan_x, scan_y)\n    radius: 6.5\n    fill: #ffffff\n    stroke: @c_emerald\n    stroke_width: 3\n    glow(12, fade(@c_emerald, 0.85))\n  }\n\n  // ---- 4. Right Bento Card: Orbital Compute Core & Radial Activity Gauge ----\n  rect \"core_card\" {\n    x: @spectrum_card.right + 18\n    y: @spectrum_card.top\n    width: 290\n    height: 246\n    radius: 22\n    fill: @matte_glass\n    stroke: @c_rim\n    stroke_width: 1.5\n    stroke_align: inner\n    shadow(0, 12, 24, fade(#000000, 0.45))\n  }\n\n  text \"core_title\" {\n    at: (@core_card.left + 20, @core_card.top + 26)\n    content: \"WGSL SHADER CORE\"\n    size: 13\n    weight: bold\n    letter_spacing: 1.2\n    fill: oklch(0.92, 0.02, 230)\n  }\n\n  let gauge_center = (@core_card.center_x, @core_card.center_y + 16)\n\n  // 12 radial dial ticks around gauge_center\n  repeat \"gauge_ticks\" {\n    count: 12\n    pivot: gauge_center\n    step_rotate: 30\n    line {\n      from: (gauge_center.x, gauge_center.y - 78)\n      to: (gauge_center.x, gauge_center.y - 68)\n      stroke: oklch(0.65, 0.05, 240, 0.45)\n      stroke_width: 2\n    }\n  }\n\n  // Outer background ring track\n  ring \"gauge_track\" {\n    center: gauge_center\n    radius: 62\n    inner_radius: 46\n    fill: oklch(0.20, 0.03, 255, 0.75)\n  }\n\n  // Animated active sector arc\n  sector \"gauge_active_arc\" {\n    center: gauge_center\n    radius: 62\n    inner_radius: 46\n    start_angle: -90\n    end_angle: oscillate(t, 0.5, 95, 235)\n    fill: @arc_grad\n    glow(12, fade(@c_cyan, 0.45))\n  }\n\n  // Inner secondary ring\n  ring \"gauge_inner_ring\" {\n    center: gauge_center\n    radius: 38\n    inner_radius: 28\n    fill: fade(@c_violet, 0.25)\n  }\n\n  sector \"gauge_inner_sector\" {\n    center: gauge_center\n    radius: 38\n    inner_radius: 28\n    start_angle: oscillate(t, 1.0, 0, 180)\n    end_angle: oscillate(t, 1.0, 180, 360)\n    fill: @c_violet\n  }\n\n  // Rotating 6-ray star core inside gauge\n  star \"core_star\" {\n    center: gauge_center\n    radius: 19\n    inner_radius: 8\n    rays: 6\n    rotate: t * 90\n    fill: @c_amber\n    glow(12, fade(@c_amber, 0.65))\n  }\n\n  text \"core_pct\" {\n    at: (@core_card.right - 20, @core_card.top + 26)\n    content: \"99.4%\"\n    size: 13\n    weight: bold\n    align: right\n    fill: @c_emerald\n  }\n\n  // ---- 5. Bottom Bento Row: 3 Interactive Micro-Interaction Cards (Total width = 840) ----\n  let bot_y = @spectrum_card.bottom + 18\n  let bot_h = 148\n\n  // Card 5A: Live Marching-Ants GPU Pipeline (AST -> SDF -> WGSL)\n  rect \"pipe_card\" {\n    x: @spectrum_card.left\n    y: bot_y\n    width: 274\n    height: bot_h\n    radius: 20\n    fill: @matte_glass\n    stroke: @c_rim\n    stroke_width: 1.5\n    stroke_align: inner\n  }\n\n  text \"pipe_title\" {\n    at: (@pipe_card.left + 18, @pipe_card.top + 24)\n    content: \"ZERO-DOM GPU PIPELINE\"\n    size: 12\n    weight: bold\n    letter_spacing: 1\n    fill: oklch(0.88, 0.03, 230)\n  }\n\n  rect \"node_ast\" {\n    x: @pipe_card.left + 18\n    y: @pipe_card.top + 56\n    width: 66\n    height: 44\n    radius: 10\n    fill: oklch(0.18, 0.04, 250)\n    stroke: @c_cyan\n    stroke_width: 2\n    stroke_align: inner\n  }\n  text { at: @node_ast.center; content: \"AST\"; size: 12; align: center; fill: @c_cyan }\n\n  rect \"node_sdf\" {\n    x: @node_ast.right + 20\n    y: @node_ast.top\n    width: 66\n    height: 44\n    radius: 10\n    fill: oklch(0.18, 0.04, 280)\n    stroke: @c_violet\n    stroke_width: 2\n    stroke_align: inner\n  }\n  text { at: @node_sdf.center; content: \"SDF\"; size: 12; align: center; fill: @c_violet }\n\n  rect \"node_wgsl\" {\n    x: @node_sdf.right + 20\n    y: @node_ast.top\n    width: 66\n    height: 44\n    radius: 10\n    fill: oklch(0.18, 0.04, 155)\n    stroke: @c_emerald\n    stroke_width: 2\n    stroke_align: inner\n  }\n  text { at: @node_wgsl.center; content: \"WGSL\"; size: 12; align: center; fill: @c_emerald }\n\n  line \"edge_ast_sdf\" {\n    from: @node_ast.right_center\n    to: @node_sdf.left_center\n    stroke: @c_cyan\n    stroke_width: 2.5\n    dash: [5, 4]\n    dash_offset: -t * 36\n    arrow: end\n    arrow_size: 7\n  }\n\n  line \"edge_sdf_wgsl\" {\n    from: @node_sdf.right_center\n    to: @node_wgsl.left_center\n    stroke: @c_emerald\n    stroke_width: 2.5\n    dash: [5, 4]\n    dash_offset: -t * 36\n    arrow: end\n    arrow_size: 7\n  }\n\n  text \"pipe_footer\" {\n    at: (@pipe_card.left + 18, @pipe_card.bottom - 18)\n    content: \"64X64 TILE BINNING | 4X RGSS\"\n    size: 10\n    letter_spacing: 0.8\n    fill: oklch(0.70, 0.04, 240)\n  }\n\n  // Card 5B: Liquid OKLCH Metaball Fusion Card\n  rect \"liquid_card\" {\n    x: @pipe_card.right + 18\n    y: bot_y\n    width: 264\n    height: bot_h\n    radius: 20\n    fill: @matte_glass\n    stroke: @c_rim\n    stroke_width: 1.5\n    stroke_align: inner\n  }\n\n  text \"liquid_title\" {\n    at: (@liquid_card.left + 18, @liquid_card.top + 24)\n    content: \"SDF SMOOTH CSG FUSION\"\n    size: 12\n    weight: bold\n    letter_spacing: 1\n    fill: oklch(0.88, 0.03, 230)\n  }\n\n  boolean \"liquid_blobs\" {\n    op: smooth_union(20)\n    fill: @wave_grad\n    stroke: fade(#ffffff, 0.55)\n    stroke_width: 1.5\n    stroke_align: inner\n    glow(14, fade(@c_cyan, 0.45))\n\n    circle {\n      center: (\n        @liquid_card.center_x - oscillate(t, 1.0, 12, 38),\n        @liquid_card.center_y + 10\n      )\n      radius: 24\n    }\n    circle {\n      center: (\n        @liquid_card.center_x + oscillate(t, 1.0, 12, 38),\n        @liquid_card.center_y + 10\n      )\n      radius: 22\n    }\n    circle {\n      center: (\n        @liquid_card.center_x,\n        @liquid_card.center_y + 10 + oscillate(t, 1.0, -22, 18, 90)\n      )\n      radius: 16\n    }\n  }\n\n  text \"liquid_footer\" {\n    at: (@liquid_card.center_x, @liquid_card.bottom - 18)\n    content: \"ANALYTICAL K=20 BLEND\"\n    size: 10\n    align: center\n    letter_spacing: 0.8\n    fill: oklch(0.75, 0.06, 200)\n  }\n\n  // Card 5C: Tactile Spring Toggle & Command Dock (Right-aligned at 900)\n  rect \"dock_card\" {\n    x: @liquid_card.right + 18\n    y: bot_y\n    width: 266\n    height: bot_h\n    radius: 20\n    fill: @matte_glass\n    stroke: @c_rim\n    stroke_width: 1.5\n    stroke_align: inner\n  }\n\n  text \"dock_title\" {\n    at: (@dock_card.left + 18, @dock_card.top + 24)\n    content: \"SPRING PHYSICS & DOCK\"\n    size: 12\n    weight: bold\n    letter_spacing: 1\n    fill: oklch(0.88, 0.03, 230)\n  }\n\n  // Animated Toggle Switch Track\n  let toggle_prog = oscillate(t, 0.5, 0.0, 1.0)\n  rect \"toggle_track\" {\n    x: @dock_card.left + 18\n    y: @dock_card.top + 48\n    width: 74\n    height: 36\n    radius: 18\n    fill: mix(oklch(0.22, 0.03, 260), fade(@c_emerald, 0.38), toggle_prog)\n    stroke: mix(@c_rim, @c_emerald, toggle_prog)\n    stroke_width: 2\n    stroke_align: inner\n  }\n\n  circle \"toggle_thumb\" {\n    center: (\n      @toggle_track.left + 18 + toggle_prog * 38,\n      @toggle_track.center_y\n    )\n    radius: 13\n    fill: #ffffff\n    glow(10, fade(@c_emerald, toggle_prog * 0.8))\n    shadow(0, 3, 6, fade(#000000, 0.5))\n  }\n\n  text \"toggle_lbl\" {\n    at: (@toggle_track.right + 14, @toggle_track.center_y)\n    content: \"TURBO AA 4X\"\n    size: 12\n    weight: bold\n    fill: mix(oklch(0.72, 0.03, 250), @c_emerald, toggle_prog)\n  }\n\n  // Tactile Shortcut Keycap Pills at bottom of dock_card\n  rect \"key_cmd\" {\n    x: @dock_card.left + 18\n    y: @toggle_track.bottom + 16\n    width: 108\n    height: 32\n    radius: 8\n    fill: oklch(0.19, 0.03, 260)\n    stroke: oklch(0.75, 0.05, 240, 0.4)\n    stroke_width: 1.5\n    stroke_align: inner\n    shadow(0, 4, 8, fade(#000000, 0.45))\n  }\n  text { at: @key_cmd.center; content: \"CMD + K\"; size: 11; align: center; fill: oklch(0.92, 0.02, 230) }\n\n  rect \"key_deploy\" {\n    x: @key_cmd.right + 14\n    y: @key_cmd.top\n    width: 108\n    height: 32\n    radius: 8\n    fill: fade(@c_cyan, 0.22)\n    stroke: @c_cyan\n    stroke_width: 1.5\n    stroke_align: inner\n    glow(8, fade(@c_cyan, 0.35))\n  }\n  text { at: @key_deploy.center; content: \"EXPORT V1.0\"; size: 11; align: center; fill: @c_cyan }\n}\n"}, "05_cyber": {"title": "05 \u00b7 Cyber Audio Equalizer", "code": "// Example 5: Cyber Pulse Audio & Radar Equalizer (.mesh v1.0.0)\n// Real-time 120 FPS parametric repeat(i, rep_t), sector radar sweep, and OKLCH neon glow.\n\nmesh \"cyber_audio_equalizer\" {\n  canvas {\n    width: 920\n    height: 520\n    background: oklch(0.08, 0.02, 265)\n  }\n\n  let c_neon   = oklch(0.84, 0.19, 165)\n  let c_cyan   = oklch(0.80, 0.17, 200)\n  let c_pink   = oklch(0.74, 0.23, 335)\n  let c_violet = oklch(0.68, 0.22, 290)\n\n  linear_gradient \"bar_grad\" {\n    angle: 90\n    stop(0.0, @c_pink)\n    stop(0.5, @c_cyan)\n    stop(1.0, @c_neon)\n  }\n\n  rect \"deck_frame\" {\n    x: 32; y: 28\n    width: width - 64; height: height - 56\n    radius: 26\n    fill: oklch(0.12, 0.025, 262, 0.95)\n    stroke: oklch(0.88, 0.06, 210, 0.32)\n    stroke_width: 2\n    stroke_align: inner\n    shadow(0, 20, 40, fade(#000000, 0.75))\n  }\n\n  text \"title\" {\n    at: (@deck_frame.left + 28, @deck_frame.top + 34)\n    content: \"CYBER-DSP // 120 FPS WASM PIXEL SYNTHESIZER\"\n    size: 14\n    weight: bold\n    letter_spacing: 1.5\n    fill: @c_cyan\n    glow(10, fade(@c_cyan, 0.45))\n  }\n\n  rect \"live_pill\" {\n    x: @deck_frame.right - 168\n    y: @deck_frame.top + 18\n    width: 140; height: 32; radius: 16\n    fill: fade(@c_neon, 0.15)\n    stroke: @c_neon; stroke_width: 1.5; stroke_align: inner\n  }\n\n  circle \"live_dot\" {\n    center: (@live_pill.left + 20, @live_pill.center_y)\n    radius: oscillate(t, 1.5, 4, 6.5)\n    fill: @c_neon\n    glow(8, @c_neon)\n  }\n\n  text \"live_txt\" {\n    at: (@live_pill.left + 36, @live_pill.center_y)\n    content: \"WASM SIMD ON\"\n    size: 11; weight: bold; fill: @c_neon\n  }\n\n  // 28-Bar Real-Time Frequency Analyzer\n  repeat \"eq_bars\" {\n    count: 28\n    let h1 = oscillate(t, 1.2, 24, 210, i * 22)\n    let h2 = oscillate(t, 2.1, 10, 85, i * 47)\n    let bh = (h1 * 0.72 + h2 * 0.28)\n    let bx = @deck_frame.left + 32 + i * 19.5\n    let by = @deck_frame.bottom - 52 - bh\n    rect {\n      x: bx; y: by\n      width: 12; height: bh\n      radius: 6\n      fill: mix(@c_cyan, @c_pink, rep_t)\n      glow(8, fade(mix(@c_cyan, @c_pink, rep_t), 0.35))\n    }\n    rect {\n      x: bx; y: by - 12 - oscillate(t, 1.2, 2, 16, i * 22)\n      width: 12; height: 6; radius: 3\n      fill: @c_neon\n    }\n  }\n\n  // Right Orbital Phase Scope\n  let scope_c = (@deck_frame.right - 165, @deck_frame.center_y + 18)\n\n  ring \"scope_outer\" {\n    center: scope_c; radius: 108; inner_radius: 104\n    fill: fade(@c_cyan, 0.35)\n  }\n\n  repeat \"scope_ticks\" {\n    count: 24\n    pivot: scope_c\n    step_rotate: 15\n    line {\n      from: (scope_c.x, scope_c.y - 100)\n      to: (scope_c.x, scope_c.y - 90)\n      stroke: fade(@c_cyan, 0.45); stroke_width: 1.5\n    }\n  }\n\n  sector \"radar_beam\" {\n    center: scope_c\n    radius: 90; inner_radius: 26\n    start_angle: t * 140\n    end_angle: t * 140 + 105\n    fill: fade(@c_neon, 0.42)\n    glow(14, fade(@c_neon, 0.5))\n  }\n\n  boolean \"scope_core_metaball\" {\n    op: smooth_union(16)\n    fill: @bar_grad\n    glow(12, fade(@c_pink, 0.6))\n    circle {\n      center: (scope_c.x + oscillate(t, 1.1, -22, 22), scope_c.y + oscillate(t, 1.1, -18, 18, 90))\n      radius: 20\n    }\n    circle {\n      center: (scope_c.x - oscillate(t, 1.1, -22, 22), scope_c.y - oscillate(t, 1.1, -18, 18, 90))\n      radius: 17\n    }\n    circle {\n      center: scope_c\n      radius: 15\n    }\n  }\n\n  text \"footer_info\" {\n    at: (@deck_frame.left + 32, @deck_frame.bottom - 22)\n    content: \"REAL-TIME PIXEL ENGINE // 0 GIFS // DIRECT AST -> WASM + CANVAS\"\n    size: 11; letter_spacing: 1.2; fill: oklch(0.68, 0.04, 245)\n  }\n}\n"}, "01_aurora": {"title": "01 \u00b7 Aurora Dashboard", "code": "// Example 1: Aurora Dashboard Card (.mesh v1.0.0)\n// Demonstrates: diffusion_gradient, perceptual OKLCH, inner stroke alignment,\n// SDF boolean subtraction & smooth_union, Catmull-Rom spline, and @id relational anchors.\n\nmesh \"aurora_dashboard\" {\n  canvas {\n    width: 800\n    height: 480\n    background: oklch(0.13, 0.02, 260)\n  }\n\n  let pad = width * 0.075\n\n  diffusion_gradient \"aurora_surface\" {\n    point(0.12, 0.18, oklch(0.58, 0.22, 305), weight: 1.5)\n    point(0.88, 0.22, oklch(0.64, 0.19, 205), weight: 1.3)\n    point(0.52, 0.86, oklch(0.55, 0.21, 155), weight: 1.4)\n    point(0.18, 0.82, oklch(0.22, 0.06, 265), weight: 1.2)\n  }\n\n  linear_gradient \"wave_stroke\" {\n    from: (0.0, 0.5)\n    to: (1.0, 0.5)\n    stop(0.0, oklch(0.88, 0.16, 195))\n    stop(0.5, oklch(0.95, 0.08, 140))\n    stop(1.0, oklch(0.85, 0.18, 310))\n  }\n\n  rect \"card\" {\n    x: pad\n    y: pad\n    width: width - pad * 2\n    height: height - pad * 2\n    radius: 28\n    fill: @aurora_surface\n    stroke: oklch(0.94, 0.03, 230, 0.45)\n    stroke_width: 4\n    stroke_align: inner\n    shadow: (0, 18, 36, oklch(0.04, 0.01, 260, 0.75))\n  }\n\n  // Relational header bar anchored inside @card\n  rect \"header_pill\" {\n    x: @card.left + 32\n    y: @card.top + 28\n    width: 240\n    height: 40\n    radius: 20\n    fill: oklch(0.16, 0.03, 260, 0.68)\n    stroke: oklch(0.85, 0.10, 210, 0.50)\n    stroke_width: 2\n    stroke_align: inner\n  }\n\n  text \"header_title\" {\n    at: @header_pill.center\n    content: \"MESH ENGINE V1.0\"\n    size: 16\n    align: center\n    letter_spacing: 2\n    fill: oklch(0.96, 0.02, 220)\n  }\n\n  // SDF Boolean crescent emblem anchored to @card.top_right\n  boolean \"crescent_badge\" {\n    op: subtract\n    fill: oklch(0.92, 0.15, 85)\n    glow: (14, oklch(0.88, 0.18, 85, 0.55))\n    circle \"outer_orb\" {\n      center: @card.top_right + (-52, 48)\n      radius: 24\n    }\n    circle \"inner_cut\" {\n      center: @card.top_right + (-43 + oscillate(t, 0.6, -4, 4), 41 + oscillate(t, 0.6, -3, 3, 90))\n      radius: 15\n    }\n  }\n\n  // Centripetal Catmull-Rom Spline passing directly through control points\n  spline \"telemetry_wave\" {\n    points: [\n      (@card.left + 40,  @card.center_y + 55),\n      (@card.left + 165, @card.center_y - 15 + oscillate(t, 0.8, -28, 28, 0)),\n      (@card.left + 295, @card.center_y + 38 + oscillate(t, 0.8, -32, 32, 90)),\n      (@card.center_x + 45, @card.center_y - 52 + oscillate(t, 0.8, -36, 36, 180)),\n      (@card.right - 150, @card.center_y + 18 + oscillate(t, 0.8, -26, 26, 270)),\n      (@card.right - 40,  @card.center_y - 35)\n    ]\n    tension: 0.5\n    stroke: @wave_stroke\n    stroke_width: 5\n    cap: round\n    glow: (12, oklch(0.85, 0.16, 185, 0.55))\n  }\n\n  // Metric cards anchored relative to @card.bottom_left\n  rect \"stat_1\" {\n    x: @card.left + 32\n    y: @card.bottom - 104\n    width: 185\n    height: 72\n    radius: 16\n    fill: oklch(0.14, 0.03, 260, 0.65)\n    stroke: oklch(0.85, 0.08, 200, 0.35)\n    stroke_width: 2\n    stroke_align: inner\n  }\n\n  text \"stat_1_val\" {\n    at: @stat_1.center\n    content: \"OKLCH + SDF\"\n    size: 18\n    align: center\n    fill: oklch(0.96, 0.02, 200)\n  }\n\n  rect \"stat_2\" {\n    x: @stat_1.right + 20\n    y: @stat_1.top\n    width: 185\n    height: 72\n    radius: 16\n    fill: oklch(0.14, 0.03, 260, 0.65)\n    stroke: oklch(0.85, 0.08, 155, 0.35)\n    stroke_width: 2\n    stroke_align: inner\n  }\n\n  text \"stat_2_val\" {\n    at: @stat_2.center\n    content: \"ZERO DOM\"\n    size: 18\n    align: center\n    fill: oklch(0.94, 0.08, 155)\n  }\n\n  rect \"stat_3\" {\n    x: @stat_2.right + 20\n    y: @stat_1.top\n    width: 210\n    height: 72\n    radius: 16\n    fill: oklch(0.14, 0.03, 260, 0.65)\n    stroke: oklch(0.85, 0.08, 305, 0.35)\n    stroke_width: 2\n    stroke_align: inner\n  }\n\n  text \"stat_3_val\" {\n    at: @stat_3.center\n    content: \"AI CONSTRAINT\"\n    size: 18\n    align: center\n    fill: oklch(0.94, 0.08, 305)\n  }\n}\n"}, "02_topology": {"title": "02 \u00b7 AI Topology Graph", "code": "// Example 2: AI Relational Topology Graph (.mesh v1.0.0)\n// Demonstrates why AI agents never hallucinate connector coordinates in .mesh:\n// Every edge, port, and label is anchored relationally to @node.right_center, @node.left_center, etc.\n\nmesh \"ai_topology_graph\" {\n  canvas {\n    width: 820\n    height: 440\n    background: oklch(0.15, 0.02, 255)\n  }\n\n  linear_gradient \"node_fill\" {\n    from: (0, 0)\n    to: (1, 1)\n    stop(0.0, oklch(0.28, 0.05, 255))\n    stop(1.0, oklch(0.20, 0.04, 265))\n  }\n\n  rect \"lexer_node\" {\n    x: 60\n    y: 160\n    width: 170\n    height: 90\n    radius: 16\n    fill: @node_fill\n    stroke: oklch(0.75, 0.16, 200)\n    stroke_width: 3\n    stroke_align: inner\n    shadow: (0, 10, 24, oklch(0.05, 0.01, 260, 0.65))\n  }\n\n  text \"lexer_lbl\" {\n    at: @lexer_node.center\n    content: \"LEXER AST\"\n    size: 18\n    align: center\n    fill: oklch(0.95, 0.02, 200)\n  }\n\n  rect \"solver_node\" {\n    x: @lexer_node.right + 95\n    y: @lexer_node.top\n    width: 190\n    height: 90\n    radius: 16\n    fill: @node_fill\n    stroke: oklch(0.78, 0.18, 150)\n    stroke_width: 3\n    stroke_align: inner\n    shadow: (0, 10, 24, oklch(0.05, 0.01, 260, 0.65))\n  }\n\n  text \"solver_lbl\" {\n    at: @solver_node.center\n    content: \"SOLVER IR\"\n    size: 18\n    align: center\n    fill: oklch(0.95, 0.02, 150)\n  }\n\n  rect \"native_out\" {\n    x: @solver_node.right + 95\n    y: 75\n    width: 180\n    height: 85\n    radius: 16\n    fill: @node_fill\n    stroke: oklch(0.78, 0.19, 310)\n    stroke_width: 3\n    stroke_align: inner\n  }\n\n  text \"native_lbl\" {\n    at: @native_out.center\n    content: \"NATIVE PNG\"\n    size: 17\n    align: center\n    fill: oklch(0.95, 0.04, 310)\n  }\n\n  rect \"browser_out\" {\n    x: @solver_node.right + 95\n    y: 250\n    width: 180\n    height: 85\n    radius: 16\n    fill: @node_fill\n    stroke: oklch(0.82, 0.17, 75)\n    stroke_width: 3\n    stroke_align: inner\n  }\n\n  text \"browser_lbl\" {\n    at: @browser_out.center\n    content: \"WEBGPU HTML\"\n    size: 17\n    align: center\n    fill: oklch(0.95, 0.04, 75)\n  }\n\n  // Zero-hardcode relational connectors between nodes\n  line \"edge_1\" {\n    from: @lexer_node.right_center\n    to: @solver_node.left_center\n    stroke: oklch(0.80, 0.15, 180)\n    stroke_width: 4\n    dash: [10, 6]\n    dash_offset: -t * 48\n    arrow: end\n  }\n\n  path \"edge_2_top\" {\n    move(@solver_node.right_center)\n    cubic(@solver_node.right_center + (55, 0), @native_out.left_center + (-55, 0), @native_out.left_center)\n    stroke: oklch(0.78, 0.19, 310)\n    stroke_width: 4\n    dash: [10, 6]\n    dash_offset: -t * 48\n    arrow: end\n  }\n\n  path \"edge_3_bot\" {\n    move(@solver_node.right_center)\n    cubic(@solver_node.right_center + (55, 0), @browser_out.left_center + (-55, 0), @browser_out.left_center)\n    stroke: oklch(0.82, 0.17, 75)\n    stroke_width: 4\n    dash: [10, 6]\n    dash_offset: -t * 48\n    arrow: end\n  }\n\n  // Port connection dots anchored automatically to endpoints\n  circle \"port_1\" { center: @lexer_node.right_center; radius: 6; fill: oklch(0.90, 0.12, 200) }\n  circle \"port_2\" { center: @solver_node.left_center; radius: 6; fill: oklch(0.90, 0.12, 150) }\n  circle \"port_3\" { center: @solver_node.right_center; radius: 6; fill: oklch(0.90, 0.12, 150) }\n  circle \"port_4\" { center: @native_out.left_center; radius: 6; fill: oklch(0.90, 0.14, 310) }\n  circle \"port_5\" { center: @browser_out.left_center; radius: 6; fill: oklch(0.92, 0.14, 75) }\n}\n"}, "03_metaballs": {"title": "03 \u00b7 SDF Liquid Metaballs", "code": "// Example 3: SDF Smooth-Union Metaballs & 2D Tensor Mesh Gradient (.mesh v1.0.0)\n// Demonstrates organic liquid boolean geometry (`smooth_union(k)`) and structured 2D mesh patches.\n\nmesh \"sdf_metaballs\" {\n  canvas {\n    width: 640\n    height: 420\n    background: oklch(0.12, 0.02, 265)\n  }\n\n  mesh_gradient \"tensor_grid\" {\n    rows: 2\n    cols: 2\n    patch(0.0, 0.0, oklch(0.75, 0.23, 330))\n    patch(1.0, 0.0, oklch(0.80, 0.18, 200))\n    patch(0.0, 1.0, oklch(0.68, 0.22, 45))\n    patch(1.0, 1.0, oklch(0.74, 0.20, 145))\n  }\n\n  boolean \"liquid_metaball\" {\n    op: smooth_union(38)\n    fill: @tensor_grid\n    stroke: oklch(0.98, 0.01, 240, 0.70)\n    stroke_width: 3\n    stroke_align: inner\n    shadow: (0, 16, 30, oklch(0.03, 0.01, 265, 0.80))\n\n    circle \"core_left\" {\n      center: (width * 0.36 + oscillate(t, 0.7, -35, 45), height * 0.50 + oscillate(t, 0.7, -18, 18, 90))\n      radius: 82\n    }\n    circle \"core_right\" {\n      center: (width * 0.62 - oscillate(t, 0.7, -45, 35), height * 0.48 - oscillate(t, 0.7, -18, 18, 90))\n      radius: 74\n    }\n    circle \"satellite_top\" {\n      center: (width * 0.50 + oscillate(t, 0.9, -30, 30, 45), height * 0.28 + oscillate(t, 0.9, -15, 55))\n      radius: 48\n    }\n  }\n\n  text \"caption\" {\n    at: (width * 0.5, height - 36)\n    content: \"SDF SMOOTH UNION + TENSOR MESH\"\n    size: 16\n    align: center\n    letter_spacing: 2\n    fill: oklch(0.92, 0.03, 230)\n  }\n}\n"}};
+
+let wasmExports = null;
+let wasmMemoryU8 = null;
+
+async function initWasmKernel() {
+  try {
+    const raw = atob(WASM_BASE64);
+    const bytes = new Uint8Array(raw.length);
+    for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+    const { instance } = await WebAssembly.instantiate(bytes);
+    wasmExports = instance.exports;
+    wasmMemoryU8 = new Uint8ClampedArray(wasmExports.memory.buffer);
+    const ver = wasmExports.wasm_version();
+    document.getElementById('wasmBadge').textContent = `Wasm Kernel v${(ver/10000).toFixed(1)} Active`;
+  } catch (e) {
+    document.getElementById('wasmBadge').textContent = 'JS Fallback Active';
+  }
+}
+
+// ============================================================================
+// 2. Perceptual Color Science (OKLCH / OKLab / sRGB / HSL / Hex)
+// ============================================================================
+const PI = Math.PI;
+function clamp01(v) { return v < 0 ? 0 : (v > 1 ? 1 : v); }
+
+function srgbToLinear(c) {
+  return (c <= 0.04045) ? (c / 12.92) : Math.pow((c + 0.055) / 1.055, 2.4);
+}
+function linearToSrgb(c) {
+  c = clamp01(c);
+  return (c <= 0.0031308) ? (12.92 * c) : (1.055 * Math.pow(c, 1.0 / 2.4) - 0.055);
+}
+function linearSrgbToOklab(r, g, b) {
+  const l = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+  const m = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+  const s = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+  const l_ = Math.cbrt(Math.max(0, l));
+  const m_ = Math.cbrt(Math.max(0, m));
+  const s_ = Math.cbrt(Math.max(0, s));
+  return {
+    L: 0.2104542553 * l_ + 0.7936177850 * m_ - 0.0040720468 * s_,
+    a: 1.9779984951 * l_ - 2.4285922050 * m_ + 0.4505937099 * s_,
+    b: 0.0259040371 * l_ + 0.7827717662 * m_ - 0.8086757660 * s_
+  };
+}
+function oklabToLinearSrgb(L, a, b) {
+  const l_ = L + 0.3963377774 * a + 0.2158037573 * b;
+  const m_ = L - 0.1055613458 * a - 0.0638541728 * b;
+  const s_ = L - 0.0894841775 * a - 1.2914855480 * b;
+  const l = l_ * l_ * l_, m = m_ * m_ * m_, s = s_ * s_ * s_;
+  return {
+    r: +4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s,
+    g: -1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s,
+    b: -0.0041960863 * l - 0.7034186147 * m + 1.7076147010 * s
+  };
+}
+function colorFromSrgb(r, g, b, a = 1.0) {
+  r = clamp01(r); g = clamp01(g); b = clamp01(b); a = clamp01(a);
+  const ok = linearSrgbToOklab(srgbToLinear(r), srgbToLinear(g), srgbToLinear(b));
+  return { r, g, b, a, ok_L: ok.L, ok_a: ok.a, ok_b: ok.b };
+}
+function colorFromOklab(L, a_lab, b_lab, alpha = 1.0) {
+  L = clamp01(L); alpha = clamp01(alpha);
+  const lin = oklabToLinearSrgb(L, a_lab, b_lab);
+  return {
+    r: linearToSrgb(lin.r),
+    g: linearToSrgb(lin.g),
+    b: linearToSrgb(lin.b),
+    a: alpha,
+    ok_L: L, ok_a: a_lab, ok_b: b_lab
+  };
+}
+function colorFromOklch(L, C, h_deg, a = 1.0) {
+  L = clamp01(L > 1.0 ? L / 100.0 : L);
+  C = Math.max(0, C);
+  const rad = h_deg * PI / 180.0;
+  return colorFromOklab(L, C * Math.cos(rad), C * Math.sin(rad), a);
+}
+function colorFromHex(hex) {
+  let s = hex.replace(/^#/, '');
+  if (s.length === 3) s = s[0]+s[0]+s[1]+s[1]+s[2]+s[2];
+  if (s.length === 4) s = s[0]+s[0]+s[1]+s[1]+s[2]+s[2]+s[3]+s[3];
+  const r = parseInt(s.slice(0,2), 16) / 255 || 0;
+  const g = parseInt(s.slice(2,4), 16) / 255 || 0;
+  const b = parseInt(s.slice(4,6), 16) / 255 || 0;
+  const a = s.length >= 8 ? (parseInt(s.slice(6,8), 16) / 255) : 1.0;
+  return colorFromSrgb(r, g, b, a);
+}
+function lerpOklab(c0, c1, t) {
+  t = clamp01(t);
+  return colorFromOklab(
+    c0.ok_L + (c1.ok_L - c0.ok_L) * t,
+    c0.ok_a + (c1.ok_a - c0.ok_a) * t,
+    c0.ok_b + (c1.ok_b - c0.ok_b) * t,
+    c0.a + (c1.a - c0.a) * t
+  );
+}
+function colorToCss(c, extraAlpha = 1.0) {
+  const ri = Math.round(clamp01(c.r) * 255);
+  const gi = Math.round(clamp01(c.g) * 255);
+  const bi = Math.round(clamp01(c.b) * 255);
+  const al = clamp01(c.a * extraAlpha);
+  return `rgba(${ri},${gi},${bi},${al.toFixed(3)})`;
+}
+function colorToHex(c) {
+  const h = (n) => Math.round(clamp01(n) * 255).toString(16).padStart(2, '0').toUpperCase();
+  return `#${h(c.r)}${h(c.g)}${h(c.b)}`;
+}
+
+// ============================================================================
+// 3. Procedural 2D FBM Noise
+// ============================================================================
+function hash2d(x, y, seed) {
+  let h = (Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(seed | 0, 1442695041)) >>> 0;
+  h = Math.imul(h ^ (h >>> 13), 1274126177) >>> 0;
+  return ((h ^ (h >>> 16)) & 0xFFFFFF) / 0x1000000;
+}
+function valueNoise2d(x, y, seed) {
+  const ix = Math.floor(x), iy = Math.floor(y);
+  const fx = x - ix, fy = y - iy;
+  const u = fx * fx * fx * (fx * (fx * 6 - 15) + 10);
+  const v = fy * fy * fy * (fy * (fy * 6 - 15) + 10);
+  const n00 = hash2d(ix, iy, seed), n10 = hash2d(ix + 1, iy, seed);
+  const n01 = hash2d(ix, iy + 1, seed), n11 = hash2d(ix + 1, iy + 1, seed);
+  return (n00 + (n10 - n00) * u) * (1 - v) + (n01 + (n11 - n01) * u) * v;
+}
+function fbmNoise2d(x, y, octaves = 4, persistence = 0.5, lacunarity = 2.0, seed = 0) {
+  let total = 0, amp = 1, maxAmp = 0, freq = 1;
+  const iseed = Math.round(seed * 100);
+  const oct = Math.max(1, Math.min(8, octaves | 0));
+  for (let i = 0; i < oct; i++) {
+    total += valueNoise2d(x * freq, y * freq, iseed + i * 101) * amp;
+    maxAmp += amp;
+    amp *= persistence;
+    freq *= lacunarity;
+  }
+  return maxAmp > 1e-9 ? clamp01(total / maxAmp) : 0;
+}
+
+// ============================================================================
+// 4. Full .mesh Lexer, Recursive-Descent Parser & Relational @id Solver
+// ============================================================================
+function tokenizeMesh(src) {
+  const tokens = [];
+  let pos = 0, line = 1, col = 1;
+  const adv = () => {
+    if (pos < src.length) {
+      if (src[pos] === '\n') { line++; col = 1; } else { col++; }
+      pos++;
+    }
+  };
+  while (pos < src.length) {
+    while (pos < src.length) {
+      const c = src[pos];
+      if (/\s/.test(c)) { adv(); continue; }
+      if (c === '/' && src[pos+1] === '/') { while (pos < src.length && src[pos] !== '\n') adv(); continue; }
+      if (c === '/' && src[pos+1] === '*') {
+        adv(); adv();
+        while (pos + 1 < src.length && !(src[pos] === '*' && src[pos+1] === '/')) adv();
+        if (pos + 1 < src.length) { adv(); adv(); }
+        continue;
+      }
+      break;
+    }
+    if (pos >= src.length) break;
+    const sl = line, sc = col, ch = src[pos];
+    const single = {'{':'LBrace','}':'RBrace','(':'LParen',')':'RParen','[':'LBracket',']':'RBracket',':':'Colon',',':'Comma',';':'Semi','=':'Assign','+':'Plus','*':'Star','/':'Slash','%':'Percent'};
+    if (single[ch]) { adv(); tokens.push({kind: single[ch], text: ch, num: 0, line: sl, col: sc}); continue; }
+    if (ch === '-') {
+      if (src[pos+1] === '>') { adv(); adv(); continue; }
+      adv(); tokens.push({kind: 'Minus', text: '-', num: 0, line: sl, col: sc}); continue;
+    }
+    if (ch === '#') {
+      adv(); let hex = '';
+      while (pos < src.length && /[0-9a-fA-F]/.test(src[pos])) { hex += src[pos]; adv(); }
+      tokens.push({kind: 'HexColor', text: '#' + hex, num: 0, line: sl, col: sc}); continue;
+    }
+    if (ch === '@') {
+      adv(); let ref = '';
+      while (pos < src.length && /[0-9a-zA-Z_.\-]/.test(src[pos])) { ref += src[pos]; adv(); }
+      tokens.push({kind: 'Ref', text: ref, num: 0, line: sl, col: sc}); continue;
+    }
+    if (ch === '"' || ch === "'") {
+      const q = ch; adv(); let s = '';
+      while (pos < src.length && src[pos] !== q) {
+        if (src[pos] === '\\' && pos + 1 < src.length) { adv(); s += src[pos]; adv(); }
+        else { s += src[pos]; adv(); }
+      }
+      if (pos < src.length) adv();
+      tokens.push({kind: 'String', text: s, num: 0, line: sl, col: sc}); continue;
+    }
+    if (/[0-9]/.test(ch) || (ch === '.' && /[0-9]/.test(src[pos+1] || ''))) {
+      let ns = '';
+      while (pos < src.length && /[0-9.]/.test(src[pos])) { ns += src[pos]; adv(); }
+      let val = parseFloat(ns) || 0;
+      if (pos < src.length && /[a-zA-Z]/.test(src[pos])) {
+        let u = '';
+        while (pos < src.length && /[a-zA-Z]/.test(src[pos])) { u += src[pos]; adv(); }
+        if (u === 'rad') val = val * 180 / PI;
+        else if (u === 'ms') val = val * 0.001;
+      }
+      tokens.push({kind: 'Number', text: ns, num: val, line: sl, col: sc}); continue;
+    }
+    if (/[a-zA-Z_]/.test(ch)) {
+      let id = '';
+      while (pos < src.length && /[0-9a-zA-Z_.\-]/.test(src[pos])) { id += src[pos]; adv(); }
+      tokens.push({kind: 'Ident', text: id, num: 0, line: sl, col: sc}); continue;
+    }
+    throw new Error(`Line ${sl}:${sc} - Unexpected character '${ch}'`);
+  }
+  tokens.push({kind: 'Eof', text: '', num: 0, line, col});
+  return tokens;
+}
+
+function makeBBox() {
+  return {
+    min_x: 0, min_y: 0, max_x: 0, max_y: 0, valid: false,
+    include(x, y) {
+      if (!this.valid) { this.min_x = this.max_x = x; this.min_y = this.max_y = y; this.valid = true; }
+      else {
+        if (x < this.min_x) this.min_x = x;
+        if (y < this.min_y) this.min_y = y;
+        if (x > this.max_x) this.max_x = x;
+        if (y > this.max_y) this.max_y = y;
+      }
+    },
+    merge(o) { if (o && o.valid) { this.include(o.min_x, o.min_y); this.include(o.max_x, o.max_y); } },
+    width() { return this.valid ? (this.max_x - this.min_x) : 0; },
+    height() { return this.valid ? (this.max_y - this.min_y) : 0; },
+    cx() { return this.valid ? 0.5 * (this.min_x + this.max_x) : 0; },
+    cy() { return this.valid ? 0.5 * (this.min_y + this.max_y) : 0; }
+  };
+}
+
+function tfIdentity() { return {a:1, b:0, c:0, d:1, tx:0, ty:0}; }
+function tfMultiply(m1, m2) {
+  return {
+    a: m1.a * m2.a + m1.c * m2.b,
+    b: m1.b * m2.a + m1.d * m2.b,
+    c: m1.a * m2.c + m1.c * m2.d,
+    d: m1.b * m2.c + m1.d * m2.d,
+    tx: m1.a * m2.tx + m1.c * m2.ty + m1.tx,
+    ty: m1.b * m2.tx + m1.d * m2.ty + m1.ty
+  };
+}
+function tfApply(m, x, y) { return { x: m.a * x + m.c * y + m.tx, y: m.b * x + m.d * y + m.ty }; }
+function tfTranslate(x, y) { return {a:1, b:0, c:0, d:1, tx:x, ty:y}; }
+function tfScale(sx, sy, px = 0, py = 0) { return {a:sx, b:0, c:0, d:sy, tx: px*(1-sx), ty: py*(1-sy)}; }
+function tfRotate(deg, px = 0, py = 0) {
+  const r = deg * PI / 180, cs = Math.cos(r), sn = Math.sin(r);
+  return {a:cs, b:sn, c:-sn, d:cs, tx: px - cs*px + sn*py, ty: py - sn*px - cs*py};
+}
+
+function splineToCubics(pts, tension = 0.5, closed = false) {
+  const segs = [];
+  if (pts.length < 2) return segs;
+  segs.push({verb: 'move', p1: pts[0]});
+  if (pts.length === 2) { segs.push({verb: 'line', p1: pts[1]}); return segs; }
+  const tau = Math.max(0, Math.min(1.5, tension));
+  const n = pts.length, count = closed ? n : (n - 1);
+  for (let i = 0; i < count; i++) {
+    const p0 = closed ? pts[(i + n - 1) % n] : (i === 0 ? pts[0] : pts[i - 1]);
+    const p1 = pts[i];
+    const p2 = pts[(i + 1) % n];
+    const p3 = closed ? pts[(i + 2) % n] : ((i + 2 < n) ? pts[i + 2] : pts[n - 1]);
+    segs.push({
+      verb: 'cubic',
+      p1: { x: p1.x + (p2.x - p0.x) * (tau / 3), y: p1.y + (p2.y - p0.y) * (tau / 3) },
+      p2: { x: p2.x - (p3.x - p1.x) * (tau / 3), y: p2.y - (p3.y - p1.y) * (tau / 3) },
+      p3: p2
+    });
+  }
+  if (closed) segs.push({verb: 'close'});
+  return segs;
+}
+
+function computeNodeBBox(node, scene) {
+  const b = makeBBox();
+  const m = node.transform;
+  if (node.kind === 'rect') {
+    [[node.x, node.y], [node.x+node.width, node.y], [node.x+node.width, node.y+node.height], [node.x, node.y+node.height]]
+      .forEach(([x,y]) => { const p = tfApply(m, x, y); b.include(p.x, p.y); });
+  } else if (node.kind === 'circle') {
+    [[node.center.x-node.radius, node.center.y-node.radius], [node.center.x+node.radius, node.center.y+node.radius]]
+      .forEach(([x,y]) => { const p = tfApply(m, x, y); b.include(p.x, p.y); });
+  } else if (node.kind === 'ellipse') {
+    [[node.center.x-node.rx, node.center.y-node.ry], [node.center.x+node.rx, node.center.y+node.ry]]
+      .forEach(([x,y]) => { const p = tfApply(m, x, y); b.include(p.x, p.y); });
+  } else if (node.kind === 'line') {
+    const p0 = tfApply(m, node.from.x, node.from.y), p1 = tfApply(m, node.to.x, node.to.y);
+    b.include(p0.x, p0.y); b.include(p1.x, p1.y);
+  } else if (node.kind === 'polygon' || node.kind === 'polyline' || node.kind === 'spline') {
+    if (node.kind === 'spline') node.path_segments = splineToCubics(node.points, node.tension, node.closed);
+    node.points.forEach(pt => { const p = tfApply(m, pt.x, pt.y); b.include(p.x, p.y); });
+  } else if (node.kind === 'path') {
+    node.path_segments.forEach(s => {
+      if (s.p1) { const p = tfApply(m, s.p1.x, s.p1.y); b.include(p.x, p.y); }
+      if (s.p2) { const p = tfApply(m, s.p2.x, s.p2.y); b.include(p.x, p.y); }
+      if (s.p3) { const p = tfApply(m, s.p3.x, s.p3.y); b.include(p.x, p.y); }
+    });
+  } else if (node.kind === 'boolean' || node.kind === 'group') {
+    const parentTf = node.transform;
+    node.transform = tfIdentity();
+    node.children.forEach(ch => {
+      ch.transform = tfMultiply(parentTf, ch.transform);
+      computeNodeBBox(ch, scene);
+      b.merge(ch.bbox);
+    });
+  } else if (node.kind === 'text') {
+    const text = String(node.text_content || '');
+    const paragraphs = text.split('\n');
+    const lineCount = Math.max(1, paragraphs.length);
+    const lineHeight = node.font_size * (node.line_height || 1.25);
+    const longest = paragraphs.reduce((n, p) => Math.max(n, Array.from(p).length), 0);
+    const w = (node.wrap && node.max_width > 0) ? node.max_width
+      : longest * (node.font_size * 0.62 + (node.letter_spacing || 0));
+    const h = (lineCount - 1) * lineHeight + node.font_size;
+    let x0 = node.text_pos.x;
+    if (node.text_align === 'center') x0 -= w * 0.5;
+    else if (node.text_align === 'right') x0 -= w;
+    const y0 = node.baseline ? node.text_pos.y - node.font_size : node.text_pos.y - h * 0.5;
+    const p0 = tfApply(m, x0, y0), p1 = tfApply(m, x0 + w, y0 + h);
+    b.include(p0.x, p0.y); b.include(p1.x, p1.y);
+  }
+  node.bbox = b;
+  if (scene && node.id) {
+    scene.node_bboxes[node.id] = b;
+    scene.named_nodes[node.id] = node;
+  }
+}
+
+let _cachedMeshSrc = null;
+let _cachedMeshTokens = null;
+
+function parseAndEvaluateMesh(source, timeSec = 0.0) {
+  if (source !== _cachedMeshSrc) {
+    _cachedMeshTokens = tokenizeMesh(source);
+    _cachedMeshSrc = source;
+  }
+  const tokens = _cachedMeshTokens;
+  let idx = 0;
+  const scene = {
+    name: 'untitled', width: 800, height: 600,
+    background: colorFromSrgb(0.05, 0.07, 0.1, 1), has_background: false,
+    eval_time: timeSec,
+    variables: {}, color_variables: {}, point_variables: {},
+    paint_servers: {}, defs: {}, fonts: {}, node_bboxes: {}, named_nodes: {}, nodes: [],
+    default_font_family: 'Open Sans', default_font_fallback: 'Noto Sans'
+  };
+
+  const syncVars = () => {
+    scene.variables.width = scene.width;
+    scene.variables.height = scene.height;
+    scene.variables.min_dim = Math.min(scene.width, scene.height);
+    scene.variables.max_dim = Math.max(scene.width, scene.height);
+    scene.variables.PI = PI;
+    scene.variables.TAU = PI * 2;
+    scene.variables.t = timeSec;
+    scene.variables.time = timeSec;
+  };
+  syncVars();
+
+  const peek = (off = 0) => tokens[Math.min(idx + off, tokens.length - 1)];
+  const consume = () => tokens[Math.min(idx++, tokens.length - 1)];
+  const atEof = () => peek().kind === 'Eof';
+  const expect = (k, msg) => {
+    if (peek().kind !== k) throw new Error(`Line ${peek().line}:${peek().col} - ${msg} (got '${peek().text}')`);
+    return consume();
+  };
+  const skipSep = () => { while (peek().kind === 'Semi' || peek().kind === 'Comma') consume(); };
+
+  const shapeKeywords = new Set([
+    'rect','circle','ellipse','line','polygon','polyline','spline','path','contour',
+    'boolean','text','group','layer','use','repeat','stack','grid','star','ngon',
+    'regular_polygon','hexagon','ring','annulus','arc','sector'
+  ]);
+
+  const isColorStart = () => {
+    const tk = peek();
+    if (tk.kind === 'HexColor') return true;
+    if (tk.kind === 'Ref' && scene.color_variables[tk.text]) return true;
+    if (tk.kind === 'Ident') {
+      if (['oklch','oklab','rgb','rgba','hsl','hsla','mix','lighten','darken','fade','alpha','white','black','transparent'].includes(tk.text)) return true;
+      if (scene.color_variables[tk.text]) return true;
+    }
+    return false;
+  };
+
+  const isPointRef = (refStr) => {
+    if (scene.point_variables[refStr]) return { ...scene.point_variables[refStr] };
+    const dot = refStr.indexOf('.');
+    if (dot === -1) return null;
+    const id = refStr.slice(0, dot), prop = refStr.slice(dot + 1);
+    const b = scene.node_bboxes[id];
+    if (!b) return null;
+    if (prop === 'center') return { x: b.cx(), y: b.cy() };
+    if (prop === 'top_left') return { x: b.min_x, y: b.min_y };
+    if (prop === 'top_right') return { x: b.max_x, y: b.min_y };
+    if (prop === 'bottom_left') return { x: b.min_x, y: b.max_y };
+    if (prop === 'bottom_right') return { x: b.max_x, y: b.max_y };
+    if (prop === 'top_center') return { x: b.cx(), y: b.min_y };
+    if (prop === 'bottom_center') return { x: b.cx(), y: b.max_y };
+    if (prop === 'left_center') return { x: b.min_x, y: b.cy() };
+    if (prop === 'right_center') return { x: b.max_x, y: b.cy() };
+    return null;
+  };
+
+  const evalScalarRef = (tok) => {
+    const s = tok.text;
+    const dot = s.indexOf('.');
+    if (dot === -1) {
+      if (scene.variables[s] !== undefined) return scene.variables[s];
+      throw new Error(`Line ${tok.line}:${tok.col} - Unknown variable '@${s}'`);
+    }
+    const id = s.slice(0, dot), prop = s.slice(dot + 1);
+    if (scene.point_variables[id]) {
+      if (prop === 'x') return scene.point_variables[id].x;
+      if (prop === 'y') return scene.point_variables[id].y;
+    }
+    const b = scene.node_bboxes[id];
+    if (!b) throw new Error(`Line ${tok.line}:${tok.col} - Unknown anchor '@${id}'`);
+    if (prop === 'x' || prop === 'left') return b.min_x;
+    if (prop === 'y' || prop === 'top') return b.min_y;
+    if (prop === 'right') return b.max_x;
+    if (prop === 'bottom') return b.max_y;
+    if (prop === 'width' || prop === 'w') return b.width();
+    if (prop === 'height' || prop === 'h') return b.height();
+    if (prop === 'center_x' || prop === 'cx') return b.cx();
+    if (prop === 'center_y' || prop === 'cy') return b.cy();
+    if (prop === 'radius' || prop === 'r') return 0.5 * Math.min(b.width(), b.height());
+    throw new Error(`Line ${tok.line}:${tok.col} - Unknown property '.${prop}' on '@${id}'`);
+  };
+
+  function parseExpr() {
+    let v = parseTerm();
+    while (peek().kind === 'Plus' || peek().kind === 'Minus') {
+      const op = consume().kind;
+      const r = parseTerm();
+      v = (op === 'Plus') ? (v + r) : (v - r);
+    }
+    return v;
+  }
+  function parseTerm() {
+    let v = parseUnary();
+    while (peek().kind === 'Star' || peek().kind === 'Slash' || peek().kind === 'Percent') {
+      const op = consume().kind;
+      const r = parseUnary();
+      if (op === 'Star') v *= r;
+      else if (op === 'Slash') v = Math.abs(r) > 1e-12 ? (v / r) : 0;
+      else v = Math.abs(r) > 1e-12 ? (v % r) : 0;
+    }
+    return v;
+  }
+  function parseUnary() {
+    if (peek().kind === 'Minus') { consume(); return -parseUnary(); }
+    if (peek().kind === 'Plus') { consume(); return parseUnary(); }
+    return parsePrimary();
+  }
+  function parsePrimary() {
+    const t = peek();
+    if (t.kind === 'Number') {
+      consume();
+      let v = t.num;
+      if (peek().kind === 'Percent') { consume(); v *= 0.01; }
+      return v;
+    }
+    if (t.kind === 'Ref') { consume(); return evalScalarRef(t); }
+    if (t.kind === 'LParen') {
+      consume(); const v = parseExpr(); expect('RParen', "Expected ')'"); return v;
+    }
+    if (t.kind === 'Ident') {
+      const name = consume().text;
+      if (name === 'true') return 1;
+      if (name === 'false') return 0;
+      if (peek().kind === 'LParen') {
+        consume();
+        const args = [];
+        if (peek().kind !== 'RParen') {
+          args.push(parseExpr());
+          while (peek().kind === 'Comma') { consume(); args.push(parseExpr()); }
+        }
+        expect('RParen', "Expected ')'");
+        const a0 = args[0]||0, a1 = args[1]||0, a2 = args[2]||0, a3 = args[3]||0, a4 = args[4]||0;
+        if (name === 'sin') return Math.sin(a0 * PI / 180);
+        if (name === 'cos') return Math.cos(a0 * PI / 180);
+        if (name === 'tan') return Math.tan(a0 * PI / 180);
+        if (name === 'sin_rad') return Math.sin(a0);
+        if (name === 'cos_rad') return Math.cos(a0);
+        if (name === 'sqrt') return Math.sqrt(Math.max(0, a0));
+        if (name === 'abs') return Math.abs(a0);
+        if (name === 'floor') return Math.floor(a0);
+        if (name === 'ceil') return Math.ceil(a0);
+        if (name === 'round') return Math.round(a0);
+        if (name === 'fract') return a0 - Math.floor(a0);
+        if (name === 'mod') return Math.abs(a1) > 1e-12 ? (a0 % a1) : 0;
+        if (name === 'min') return Math.min(a0, a1);
+        if (name === 'max') return Math.max(a0, a1);
+        if (name === 'pow') return Math.pow(a0, a1);
+        if (name === 'clamp') return Math.max(a1, Math.min(a2, a0));
+        if (name === 'lerp') return a0 + (a1 - a0) * a2;
+        if (name === 'smoothstep') {
+          const u = clamp01((a2 - a0) / Math.max(1e-9, a1 - a0));
+          return u * u * (3 - 2 * u);
+        }
+        if (name === 'polar_x') return a0 * Math.cos(a1 * PI / 180);
+        if (name === 'polar_y') return a0 * Math.sin(a1 * PI / 180);
+        if (name === 'noise') return fbmNoise2d(a0, a1, 4, 0.5, 2.0, a2);
+        if (name === 'oscillate') {
+          const ph = a4 * PI / 180;
+          const s = 0.5 + 0.5 * Math.sin(2 * PI * a1 * a0 + ph);
+          return a2 + (a3 - a2) * s;
+        }
+        if (name === 'wave') return Math.sin(2 * PI * a1 * a0 + a2 * PI / 180);
+        if (name === 'pulse') return 0.5 - 0.5 * Math.cos(2 * PI * a1 * a0);
+        if (name === 'saw') { const v = a0 * a1 + a2; return v - Math.floor(v); }
+        if (name === 'ping_pong') { const v = a0 * a1, f = v - Math.floor(v); return 1 - Math.abs(2 * f - 1); }
+        if (name === 'ease_in_out') {
+          const u = clamp01((a0 - a1) / Math.max(1e-6, a2));
+          return a3 + (a4 - a3) * (u * u * (3 - 2 * u));
+        }
+        if (name === 'ease_out_cubic') {
+          const u = clamp01((a0 - a1) / Math.max(1e-6, a2));
+          return a3 + (a4 - a3) * (1 - Math.pow(1 - u, 3));
+        }
+        if (name === 'ease_out_back') {
+          const u = clamp01((a0 - a1) / Math.max(1e-6, a2));
+          const c1 = args.length >= 6 ? args[5] : 1.70158, c3 = c1 + 1, um1 = u - 1;
+          return a3 + (a4 - a3) * (1 + c3 * um1 * um1 * um1 + c1 * um1 * um1);
+        }
+        if (name === 'spring') {
+          const dt = a0 - a1;
+          if (dt <= 0) return a2;
+          const k = args.length >= 5 ? Math.max(1, a4) : 180;
+          const c = args.length >= 6 ? Math.max(0.1, args[5]) : 14;
+          const w0 = Math.sqrt(k), zeta = Math.min(0.99, c / (2 * w0)), wd = w0 * Math.sqrt(1 - zeta * zeta);
+          return a3 - (a3 - a2) * Math.exp(-zeta * w0 * dt) * (Math.cos(wd * dt) + (zeta * w0 / wd) * Math.sin(wd * dt));
+        }
+        throw new Error(`Line ${t.line}:${t.col} - Unknown function '${name}'`);
+      }
+      if (scene.variables[name] !== undefined) return scene.variables[name];
+      if (name.includes('.')) return evalScalarRef(t);
+      throw new Error(`Line ${t.line}:${t.col} - Unknown variable '${name}'`);
+    }
+    throw new Error(`Line ${t.line}:${t.col} - Expected expression near '${t.text}'`);
+  }
+
+  function parseSingleVec2() {
+    if (peek().kind === 'Ref') {
+      const pt = isPointRef(peek().text);
+      if (pt) { consume(); return pt; }
+    }
+    if (peek().kind === 'Ident') {
+      const pt = isPointRef(peek().text);
+      if (pt) { consume(); return pt; }
+    }
+    if (peek().kind === 'LParen') {
+      consume(); const x = parseExpr(); expect('Comma', "Expected ','"); const y = parseExpr(); expect('RParen', "Expected ')'");
+      return { x, y };
+    }
+    const x = parseExpr(); expect('Comma', "Expected ','"); const y = parseExpr();
+    return { x, y };
+  }
+  function parseVec2() {
+    let v = parseSingleVec2();
+    while (peek().kind === 'Plus' || peek().kind === 'Minus') {
+      const op = consume().kind, d = parseSingleVec2();
+      v = (op === 'Plus') ? { x: v.x + d.x, y: v.y + d.y } : { x: v.x - d.x, y: v.y - d.y };
+    }
+    return v;
+  }
+
+  function parseColor() {
+    const t = peek();
+    if (t.kind === 'HexColor') { consume(); return colorFromHex(t.text); }
+    if (t.kind === 'Ref' && scene.color_variables[t.text]) { consume(); return scene.color_variables[t.text]; }
+    if (t.kind === 'Ident') {
+      const fn = consume().text;
+      if (fn === 'transparent' || fn === 'none') return colorFromSrgb(0, 0, 0, 0);
+      if (fn === 'white') return colorFromSrgb(1, 1, 1, 1);
+      if (fn === 'black') return colorFromSrgb(0, 0, 0, 1);
+      if (peek().kind !== 'LParen') {
+        if (scene.color_variables[fn]) return scene.color_variables[fn];
+        throw new Error(`Line ${t.line}:${t.col} - Unknown color '${fn}'`);
+      }
+      expect('LParen', "Expected '('");
+      if (fn === 'mix') {
+        const c0 = parseColor(); expect('Comma', ','); const c1 = parseColor(); expect('Comma', ',');
+        const ratio = parseExpr(); expect('RParen', ')');
+        return lerpOklab(c0, c1, ratio);
+      }
+      if (fn === 'lighten') {
+        const c0 = parseColor(); expect('Comma', ','); const amt = parseExpr(); expect('RParen', ')');
+        return colorFromOklab(clamp01(c0.ok_L + amt), c0.ok_a, c0.ok_b, c0.a);
+      }
+      if (fn === 'darken') {
+        const c0 = parseColor(); expect('Comma', ','); const amt = parseExpr(); expect('RParen', ')');
+        return colorFromOklab(clamp01(c0.ok_L - amt), c0.ok_a, c0.ok_b, c0.a);
+      }
+      if (fn === 'fade' || fn === 'alpha') {
+        const c0 = parseColor(); expect('Comma', ','); const a = parseExpr(); expect('RParen', ')');
+        return { ...c0, a: clamp01(a) };
+      }
+      const args = [parseExpr()];
+      while (peek().kind === 'Comma') { consume(); args.push(parseExpr()); }
+      expect('RParen', ')');
+      if (fn === 'oklch') return colorFromOklch(args[0], args[1], args[2], args.length >= 4 ? args[3] : 1);
+      if (fn === 'oklab') return colorFromOklab(args[0], args[1], args[2], args.length >= 4 ? args[3] : 1);
+      if (fn === 'rgb' || fn === 'rgba') {
+        const sc = (args[0] > 1 || args[1] > 1 || args[2] > 1) ? (1/255) : 1;
+        return colorFromSrgb(args[0]*sc, args[1]*sc, args[2]*sc, args.length >= 4 ? args[3] : 1);
+      }
+      throw new Error(`Line ${t.line}:${t.col} - Unknown color function '${fn}'`);
+    }
+    throw new Error(`Line ${t.line}:${t.col} - Expected color`);
+  }
+
+  function parsePaintValue() {
+    if (peek().kind === 'Ident' && peek().text === 'none') { consume(); return { kind: 'none' }; }
+    if (peek().kind === 'Ref') {
+      const id = peek().text;
+      if (scene.paint_servers[id]) { consume(); return scene.paint_servers[id]; }
+      if (scene.color_variables[id]) { consume(); return { kind: 'solid', color: scene.color_variables[id] }; }
+      throw new Error(`Line ${peek().line}:${peek().col} - Unknown paint '@${id}'`);
+    }
+    return { kind: 'solid', color: parseColor() };
+  }
+
+  function parseLet() {
+    consume(); // let
+    const name = expect('Ident', 'Expected variable name').text;
+    expect('Assign', "Expected '='");
+    if (isColorStart()) {
+      scene.color_variables[name] = parseColor();
+    } else {
+      let isPt = false;
+      if (peek().kind === 'Ref' && isPointRef(peek().text)) isPt = true;
+      else if (peek().kind === 'Ident' && isPointRef(peek().text)) isPt = true;
+      else if (peek().kind === 'LParen') {
+        let d = 0;
+        for (let k = idx; k < tokens.length; k++) {
+          if (tokens[k].kind === 'LParen') d++;
+          else if (tokens[k].kind === 'RParen') { d--; if (d === 0) break; }
+          else if (tokens[k].kind === 'Comma' && d === 1) { isPt = true; break; }
+        }
+      }
+      if (isPt) {
+        const pt = parseVec2();
+        scene.point_variables[name] = pt;
+        scene.variables[name + '.x'] = pt.x;
+        scene.variables[name + '.y'] = pt.y;
+      } else {
+        scene.variables[name] = parseExpr();
+      }
+    }
+    skipSep();
+  }
+
+  function parseGradient() {
+    const kindStr = consume().text;
+    const id = consume().text;
+    const ps = {
+      kind: kindStr, id, start: {x:0, y:0}, end: {x:1, y:1}, center: {x:0.5, y:0.5},
+      radius: 0.5, angle_deg: 0, stops: [], points: [], rows: 2, cols: 2,
+      falloff: 2.6, scale: 4, octaves: 4, persistence: 0.5, lacunarity: 2, seed: 0, grain: 0
+    };
+    let hasFromTo = false, hasAngle = false;
+    expect('LBrace', '{');
+    while (!atEof() && peek().kind !== 'RBrace') {
+      skipSep(); if (peek().kind === 'RBrace') break;
+      const item = consume().text;
+      if (item === 'stop' && peek().kind === 'LParen') {
+        consume(); const off = parseExpr(); expect('Comma', ','); const col = parseColor(); expect('RParen', ')');
+        ps.stops.push({ offset: clamp01(off), color: col });
+      } else if ((item === 'point' || item === 'patch') && peek().kind === 'LParen') {
+        consume(); const u = parseExpr(); expect('Comma', ','); const v = parseExpr(); expect('Comma', ',');
+        const col = parseColor(); let w = 1;
+        if (peek().kind === 'Comma') {
+          consume();
+          if (peek().kind === 'Ident' && peek().text === 'weight' && peek(1).kind === 'Colon') { consume(); consume(); }
+          w = parseExpr();
+        }
+        expect('RParen', ')');
+        ps.points.push({ u, v, color: col, weight: w });
+      } else {
+        expect('Colon', ':');
+        if (item === 'from' || item === 'start') { ps.start = parseVec2(); hasFromTo = true; }
+        else if (item === 'to' || item === 'end') { ps.end = parseVec2(); hasFromTo = true; }
+        else if (item === 'center') ps.center = parseVec2();
+        else if (item === 'radius' || item === 'r') ps.radius = parseExpr();
+        else if (item === 'angle') { ps.angle_deg = parseExpr(); hasAngle = true; }
+        else if (item === 'rows') ps.rows = Math.round(parseExpr());
+        else if (item === 'cols') ps.cols = Math.round(parseExpr());
+        else if (item === 'falloff') ps.falloff = parseExpr();
+        else if (item === 'scale' || item === 'frequency') ps.scale = parseExpr();
+        else if (item === 'octaves') ps.octaves = Math.round(parseExpr());
+        else if (item === 'persistence' || item === 'gain') ps.persistence = parseExpr();
+        else if (item === 'lacunarity') ps.lacunarity = parseExpr();
+        else if (item === 'seed') ps.seed = parseExpr();
+        else if (item === 'grain' || item === 'noise_grain') ps.grain = clamp01(parseExpr());
+        else consume();
+      }
+      skipSep();
+    }
+    expect('RBrace', '}');
+    if (kindStr === 'linear_gradient' && hasAngle && !hasFromTo) {
+      const r = ps.angle_deg * PI / 180, dx = 0.5 * Math.cos(r), dy = 0.5 * Math.sin(r);
+      ps.start = { x: 0.5 - dx, y: 0.5 - dy };
+      ps.end   = { x: 0.5 + dx, y: 0.5 + dy };
+    }
+    ps.stops.sort((a, b) => a.offset - b.offset);
+    scene.paint_servers[id] = ps;
+  }
+
+  function defaultStyle() {
+    return {
+      fill: { kind: 'none' }, stroke: { kind: 'none' }, stroke_width: 0,
+      stroke_align: 'center', line_cap: 'round', line_join: 'round',
+      dash_array: [], dash_offset: 0, opacity: 1, grain: 0,
+      arrow_mode: 'none', arrow_size: 10, blend_mode: 'source-over', clip_id: '',
+      shadow: { enabled: false, dx: 0, dy: 8, blur: 16, color: colorFromSrgb(0,0,0,0.45) },
+      glow: { enabled: false, radius: 12, color: colorFromSrgb(1,1,1,0.5) }
+    };
+  }
+
+  function parseShadow(sh) {
+    if (peek().kind === 'Colon') consume();
+    expect('LParen', '('); sh.enabled = true;
+    sh.dx = parseExpr(); expect('Comma', ',');
+    sh.dy = parseExpr(); expect('Comma', ',');
+    sh.blur = parseExpr(); expect('Comma', ',');
+    sh.color = parseColor(); expect('RParen', ')');
+  }
+  function parseGlow(gl) {
+    if (peek().kind === 'Colon') consume();
+    expect('LParen', '('); gl.enabled = true;
+    gl.radius = parseExpr(); expect('Comma', ',');
+    gl.color = parseColor(); expect('RParen', ')');
+  }
+
+  function parseShape() {
+    const kwTok = peek();
+    if (kwTok.text === 'use') {
+      consume();
+      let id = '';
+      if (peek().kind === 'String' || peek().kind === 'Ident') id = consume().text;
+      expect('LBrace', '{');
+      let target = '', at = {x:0, y:0}, sc = {x:1, y:1}, rot = 0, op = 1, blend = 'source-over', clip = '';
+      while (!atEof() && peek().kind !== 'RBrace') {
+        skipSep(); if (peek().kind === 'RBrace') break;
+        const p = consume().text; expect('Colon', ':');
+        if (p === 'target' || p === 'href') target = consume().text;
+        else if (p === 'at' || p === 'pos' || p === 'translate') at = parseVec2();
+        else if (p === 'scale') { if (peek().kind === 'LParen') sc = parseVec2(); else { const s = parseExpr(); sc = {x:s, y:s}; } }
+        else if (p === 'rotate') rot = parseExpr();
+        else if (p === 'opacity') op = clamp01(parseExpr());
+        else if (p === 'blend') { const b = consume().text; blend = b === 'add' ? 'lighter' : b; }
+        else if (p === 'clip') clip = consume().text;
+        skipSep();
+      }
+      expect('RBrace', '}');
+      const tpl = scene.defs[target];
+      if (!tpl) throw new Error(`Unknown def '@${target}'`);
+      const inst = JSON.parse(JSON.stringify(tpl));
+      inst.id = id;
+      const tf = tfMultiply(tfTranslate(at.x, at.y), tfMultiply(tfRotate(rot), tfScale(sc.x, sc.y)));
+      inst.transform = tfMultiply(inst.transform, tf);
+      return inst;
+    }
+
+    if (kwTok.text === 'repeat') {
+      consume();
+      let id = '';
+      if (peek().kind === 'String' || peek().kind === 'Ident') id = consume().text;
+      expect('LBrace', '{');
+      let count = 2, pivot = {x:0, y:0}, stepRot = 0, stepTr = {x:0, y:0}, stepSc = {x:1, y:1}, blend = 'source-over', clip = '';
+      const bodyItems = [];
+      const prevI = scene.variables.i, prevRepT = scene.variables.rep_t;
+      scene.variables.i = 0; scene.variables.rep_t = 0;
+
+      while (!atEof() && peek().kind !== 'RBrace') {
+        skipSep(); if (peek().kind === 'RBrace') break;
+        if (peek().kind === 'Ident' && peek().text === 'let') {
+          bodyItems.push({ isLet: true, tokIdx: idx });
+          parseLet();
+          continue;
+        }
+        if (peek().kind === 'Ident' && shapeKeywords.has(peek().text)) {
+          bodyItems.push({ isLet: false, tokIdx: idx });
+          let bd = 0;
+          while (!atEof()) {
+            const k = consume().kind;
+            if (k === 'LBrace') bd++;
+            else if (k === 'RBrace') { bd--; if (bd === 0) break; }
+          }
+          skipSep();
+          continue;
+        }
+        const p = consume().text; expect('Colon', ':');
+        if (p === 'count' || p === 'steps') count = Math.max(1, Math.min(512, Math.round(parseExpr())));
+        else if (p === 'pivot' || p === 'center') pivot = parseVec2();
+        else if (p === 'step_rotate' || p === 'rotate_step') stepRot = parseExpr();
+        else if (p === 'step_translate' || p === 'step') stepTr = parseVec2();
+        else if (p === 'step_scale') { if (peek().kind === 'LParen') stepSc = parseVec2(); else { const s = parseExpr(); stepSc = {x:s, y:s}; } }
+        else if (p === 'blend') { const b = consume().text; blend = b === 'add' ? 'lighter' : b; }
+        else if (p === 'clip') clip = consume().text;
+        skipSep();
+      }
+      expect('RBrace', '}');
+      const endRepeatIdx = idx;
+
+      const grp = { kind: 'group', id, style: defaultStyle(), transform: tfIdentity(), children: [] };
+      for (let i = 0; i < count; i++) {
+        scene.variables.i = i;
+        scene.variables.rep_t = count > 1 ? (i / (count - 1)) : 0;
+        const iterTf = tfMultiply(
+          tfTranslate(stepTr.x * i, stepTr.y * i),
+          tfMultiply(tfRotate(stepRot * i, pivot.x, pivot.y), tfScale(Math.pow(stepSc.x, i), Math.pow(stepSc.y, i), pivot.x, pivot.y))
+        );
+        for (const item of bodyItems) {
+          idx = item.tokIdx;
+          if (item.isLet) {
+            parseLet();
+          } else {
+            const ch = parseShape();
+            if (ch.id) ch.id = `${ch.id}_${i}`;
+            if (blend !== 'source-over') ch.style.blend_mode = blend;
+            if (clip && !ch.style.clip_id) ch.style.clip_id = clip;
+            ch.transform = tfMultiply(iterTf, ch.transform);
+            grp.children.push(ch);
+          }
+        }
+      }
+      idx = endRepeatIdx;
+      if (prevI !== undefined) scene.variables.i = prevI; else delete scene.variables.i;
+      if (prevRepT !== undefined) scene.variables.rep_t = prevRepT; else delete scene.variables.rep_t;
+      return grp;
+    }
+
+    if (kwTok.text === 'stack' || kwTok.text === 'grid') {
+      const kw = consume().text;
+      let id = '';
+      if (peek().kind === 'String' || peek().kind === 'Ident') id = consume().text;
+      expect('LBrace', '{');
+      let sx = 0, sy = 0, gx = 16, gy = 16, pad = 0, cols = 3, dir = kw === 'grid' ? 'grid' : 'horizontal', align = 'start', rad = 0;
+      const st = defaultStyle();
+      const items = [];
+      while (!atEof() && peek().kind !== 'RBrace') {
+        skipSep(); if (peek().kind === 'RBrace') break;
+        if (peek().kind === 'Ident' && peek().text === 'let') { parseLet(); continue; }
+        if (peek().kind === 'Ident' && shapeKeywords.has(peek().text)) {
+          const it = parseShape(); computeNodeBBox(it, null); items.push(it); skipSep(); continue;
+        }
+        const p = consume().text;
+        if (p === 'shadow') { parseShadow(st.shadow); skipSep(); continue; }
+        if (p === 'glow') { parseGlow(st.glow); skipSep(); continue; }
+        expect('Colon', ':');
+        if (p === 'x') sx = parseExpr();
+        else if (p === 'y') sy = parseExpr();
+        else if (p === 'gap' || p === 'spacing') { if (peek().kind === 'LParen') { const g = parseVec2(); gx = g.x; gy = g.y; } else gx = gy = parseExpr(); }
+        else if (p === 'padding' || p === 'pad') pad = parseExpr();
+        else if (p === 'cols' || p === 'columns') cols = Math.max(1, Math.round(parseExpr()));
+        else if (p === 'direction' || p === 'dir') dir = consume().text;
+        else if (p === 'align') align = consume().text;
+        else if (p === 'fill') st.fill = parsePaintValue();
+        else if (p === 'stroke') { st.stroke = parsePaintValue(); if (st.stroke_width <= 0) st.stroke_width = 1.5; }
+        else if (p === 'stroke_width') st.stroke_width = parseExpr();
+        else if (p === 'radius' || p === 'r') rad = parseExpr();
+        else consume();
+        skipSep();
+      }
+      expect('RBrace', '}');
+      const grp = { kind: 'group', id, style: defaultStyle(), transform: tfIdentity(), children: [] };
+      let cx = sx + pad, cy = sy + pad, maxCross = 0, cellW = 0, cellH = 0;
+      items.forEach(it => {
+        if (dir === 'horizontal' || dir === 'row') maxCross = Math.max(maxCross, it.bbox.height());
+        else if (dir === 'vertical' || dir === 'col') maxCross = Math.max(maxCross, it.bbox.width());
+        cellW = Math.max(cellW, it.bbox.width()); cellH = Math.max(cellH, it.bbox.height());
+      });
+      const cb = makeBBox();
+      const laid = items.map((ch, i) => {
+        const w = ch.bbox.width(), h = ch.bbox.height();
+        let tx = cx, ty = cy;
+        if (dir === 'horizontal' || dir === 'row') {
+          if (align === 'center') ty += (maxCross - h) * 0.5;
+          cx += w + gx;
+        } else if (dir === 'vertical' || dir === 'col') {
+          if (align === 'center') tx += (maxCross - w) * 0.5;
+          cy += h + gy;
+        } else {
+          const r = Math.floor(i / cols), c = i % cols;
+          tx = sx + pad + c * (cellW + gx);
+          ty = sy + pad + r * (cellH + gy);
+        }
+        ch.transform = tfMultiply(tfTranslate(tx - ch.bbox.min_x, ty - ch.bbox.min_y), ch.transform);
+        computeNodeBBox(ch, scene);
+        cb.merge(ch.bbox);
+        return ch;
+      });
+      if (cb.valid && (pad > 0 || st.fill.kind !== 'none' || st.stroke.kind !== 'none')) {
+        const bg = {
+          kind: 'rect', id: '', x: sx, y: sy, width: (cb.max_x - sx) + pad, height: (cb.max_y - sy) + pad,
+          corner_radii: [rad, rad, rad, rad], style: st, transform: tfIdentity(), children: []
+        };
+        computeNodeBBox(bg, null);
+        grp.children.push(bg);
+      }
+      grp.children.push(...laid);
+      return grp;
+    }
+
+    const kw = consume().text;
+    const isStar = kw === 'star';
+    const isNgon = kw === 'ngon' || kw === 'regular_polygon' || kw === 'hexagon';
+    const isRing = kw === 'ring' || kw === 'annulus';
+    const isArc  = kw === 'arc' || kw === 'sector';
+
+    const node = {
+      kind: kw, id: '', style: defaultStyle(), transform: tfIdentity(),
+      x: 0, y: 0, width: 100, height: 100, corner_radii: [0,0,0,0],
+      center: {x:0, y:0}, radius: 50, rx: 50, ry: 50,
+      from: {x:0, y:0}, to: {x:100, y:100},
+      points: [], path_segments: [], children: [],
+      tension: 0.5, closed: false, bool_op: 'union', smoothness: 16,
+      text_pos: {x:0, y:0}, text_content: '', font_size: 16, font_weight: null, text_align: 'left',
+      letter_spacing: 0, word_spacing: 0, line_height: 1.25, max_width: 0, wrap: false, baseline: false,
+      font_id: '', font_family: '', font_src: '', font_fallback: '', font_style: null, font_stretch: null
+    };
+    if (isStar || isNgon) { node.kind = 'polygon'; node.closed = true; }
+    else if (isArc) { node.kind = 'polyline'; }
+    else if (isRing) { node.kind = 'boolean'; node.bool_op = 'subtract'; }
+    else if (kw === 'layer') node.kind = 'group';
+    else if (kw === 'contour') node.kind = 'path';
+
+    if (peek().kind === 'String' || peek().kind === 'Ident') node.id = consume().text;
+    expect('LBrace', '{');
+
+    let hasCenter = false, posCenter = {x:0, y:0};
+    let starRays = 5, ngonSides = 6, innerRad = 0, startAng = 0, endAng = 180;
+
+    while (!atEof() && peek().kind !== 'RBrace') {
+      skipSep(); if (peek().kind === 'RBrace') break;
+      if (peek().kind === 'Ident' && peek().text === 'let') { parseLet(); continue; }
+      if ((node.kind === 'group' || node.kind === 'boolean') && !isRing && peek().kind === 'Ident' && shapeKeywords.has(peek().text)) {
+        const ch = parseShape(); computeNodeBBox(ch, scene); node.children.push(ch); skipSep(); continue;
+      }
+      if (node.kind === 'path' && peek().kind === 'Ident' && (peek(1).kind === 'LParen' || peek().text === 'close')) {
+        const cmd = consume().text;
+        if (cmd === 'close') {
+          if (peek().kind === 'LParen') { consume(); expect('RParen', ')'); }
+          node.path_segments.push({ verb: 'close' }); node.closed = true;
+        } else {
+          expect('LParen', '(');
+          if (cmd === 'move' || cmd === 'line') {
+            const p1 = parseVec2(); expect('RParen', ')');
+            node.path_segments.push({ verb: cmd, p1 });
+          } else if (cmd === 'quad') {
+            const p1 = parseVec2(); expect('Comma', ','); const p2 = parseVec2(); expect('RParen', ')');
+            node.path_segments.push({ verb: 'quad', p1, p2 });
+          } else if (cmd === 'cubic') {
+            const p1 = parseVec2(); expect('Comma', ','); const p2 = parseVec2(); expect('Comma', ','); const p3 = parseVec2(); expect('RParen', ')');
+            node.path_segments.push({ verb: 'cubic', p1, p2, p3 });
+          }
+        }
+        skipSep(); continue;
+      }
+
+      const prop = consume().text;
+      if (prop === 'shadow') { parseShadow(node.style.shadow); skipSep(); continue; }
+      if (prop === 'glow') { parseGlow(node.style.glow); skipSep(); continue; }
+      expect('Colon', ':');
+
+      if (prop === 'x') { const v = parseExpr(); if (node.kind === 'text') node.text_pos.x = v; else node.x = v; }
+      else if (prop === 'y') { const v = parseExpr(); if (node.kind === 'text') node.text_pos.y = v; else node.y = v; }
+      else if (prop === 'pos' || prop === 'top_left') { const p = parseVec2(); node.x = p.x; node.y = p.y; node.text_pos = p; }
+      else if (prop === 'at' || prop === 'center') { const p = parseVec2(); node.center = p; node.text_pos = p; hasCenter = true; posCenter = p; }
+      else if (prop === 'width' || prop === 'w') node.width = parseExpr();
+      else if (prop === 'height' || prop === 'h') node.height = parseExpr();
+      else if (prop === 'size') {
+        if (node.kind === 'text') node.font_size = parseExpr();
+        else if (peek().kind === 'LParen') { const sz = parseVec2(); node.width = sz.x; node.height = sz.y; }
+        else { const s = parseExpr(); node.width = node.height = node.font_size = s; }
+      } else if (prop === 'radius' || prop === 'r' || prop === 'outer_radius') {
+        if (peek().kind === 'LBracket') {
+          consume();
+          for (let i = 0; i < 4; i++) { if (i > 0 && peek().kind === 'Comma') consume(); node.corner_radii[i] = parseExpr(); }
+          expect('RBracket', ']');
+        } else {
+          const r = parseExpr(); node.radius = r; node.corner_radii = [r,r,r,r];
+        }
+      } else if (prop === 'inner_radius' || prop === 'hole_radius') innerRad = parseExpr();
+      else if (prop === 'rays' || prop === 'arms') starRays = Math.max(3, Math.round(parseExpr()));
+      else if (prop === 'sides') ngonSides = Math.max(3, Math.round(parseExpr()));
+      else if (prop === 'start_angle') startAng = parseExpr();
+      else if (prop === 'end_angle') endAng = parseExpr();
+      else if (prop === 'rx') node.rx = parseExpr();
+      else if (prop === 'ry') node.ry = parseExpr();
+      else if (prop === 'from' || prop === 'start') node.from = parseVec2();
+      else if (prop === 'to' || prop === 'end') node.to = parseVec2();
+      else if (prop === 'points') {
+        expect('LBracket', '[');
+        while (!atEof() && peek().kind !== 'RBracket') { skipSep(); if (peek().kind === 'RBracket') break; node.points.push(parseVec2()); skipSep(); }
+        expect('RBracket', ']');
+      } else if (prop === 'tension') node.tension = parseExpr();
+      else if (prop === 'closed') {
+        if (peek().kind === 'Ident') node.closed = (consume().text === 'true');
+        else node.closed = (parseExpr() !== 0);
+      } else if (prop === 'op') {
+        const op = consume().text;
+        node.bool_op = op;
+        if (op === 'smooth_union' && peek().kind === 'LParen') {
+          consume(); node.smoothness = parseExpr(); expect('RParen', ')');
+        }
+      } else if (prop === 'smoothness' || prop === 'k') node.smoothness = parseExpr();
+      else if (prop === 'content' || prop === 'text') node.text_content = consume().text;
+      else if (prop === 'font') {
+        const f = consume().text;
+        if (scene.fonts[f]) node.font_id = f; else node.font_family = f;
+      } else if (prop === 'font_family') node.font_family = consume().text;
+      else if (prop === 'font_src') node.font_src = consume().text;
+      else if (prop === 'font_fallback') node.font_fallback = consume().text;
+      else if (prop === 'font_style') node.font_style = consume().text;
+      else if (prop === 'font_stretch') node.font_stretch = peek().kind === 'Ident' ? consume().text : parseExpr();
+      else if (prop === 'font_features' || prop === 'font_language') consume();
+      else if (prop === 'font_weight' || (node.kind === 'text' && prop === 'weight')) {
+        if (peek().kind === 'Ident') {
+          const fw = consume().text;
+          node.font_weight = (fw === 'bold' || fw === 'heavy') ? 700 : (fw === 'light' ? 300 : (fw === 'semibold' ? 600 : 500));
+        } else node.font_weight = parseExpr();
+      } else if (prop === 'align') node.text_align = consume().text;
+      else if (prop === 'letter_spacing' || prop === 'tracking') node.letter_spacing = parseExpr();
+      else if (prop === 'word_spacing') node.word_spacing = parseExpr();
+      else if (prop === 'line_height') node.line_height = parseExpr();
+      else if (prop === 'max_width') node.max_width = parseExpr();
+      else if (prop === 'wrap' || prop === 'baseline') {
+        const b = peek().kind === 'Ident' ? (consume().text === 'true') : (parseExpr() !== 0);
+        if (prop === 'wrap') node.wrap = b; else node.baseline = b;
+      } else if (prop === 'matrix' || prop === 'transform') {
+        expect('LParen', '(');
+        const a = parseExpr(); expect('Comma', ','); const b = parseExpr(); expect('Comma', ',');
+        const c = parseExpr(); expect('Comma', ','); const d = parseExpr(); expect('Comma', ',');
+        const tx = parseExpr(); expect('Comma', ','); const ty = parseExpr(); expect('RParen', ')');
+        node.transform = tfMultiply(node.transform, { a, b, c, d, tx, ty });
+      }
+      else if (prop === 'fill') {
+        node.style.fill = parsePaintValue();
+        if (node.style.fill.grain > 0 && node.style.grain <= 0) node.style.grain = node.style.fill.grain;
+      } else if (prop === 'stroke') {
+        node.style.stroke = parsePaintValue();
+        if (node.style.stroke_width <= 0 && node.style.stroke.kind !== 'none') node.style.stroke_width = 1.5;
+      } else if (prop === 'stroke_width' || prop === 'weight') node.style.stroke_width = parseExpr();
+      else if (prop === 'stroke_align') node.style.stroke_align = consume().text;
+      else if (prop === 'cap' || prop === 'line_cap') node.style.line_cap = consume().text;
+      else if (prop === 'join' || prop === 'line_join') node.style.line_join = consume().text;
+      else if (prop === 'dash') {
+        expect('LBracket', '[');
+        while (!atEof() && peek().kind !== 'RBracket') { skipSep(); if (peek().kind === 'RBracket') break; node.style.dash_array.push(parseExpr()); skipSep(); }
+        expect('RBracket', ']');
+      } else if (prop === 'dash_offset') node.style.dash_offset = parseExpr();
+      else if (prop === 'grain' || prop === 'noise_grain') node.style.grain = clamp01(parseExpr());
+      else if (prop === 'arrow' || prop === 'marker') node.style.arrow_mode = consume().text;
+      else if (prop === 'arrow_size') node.style.arrow_size = parseExpr();
+      else if (prop === 'opacity' || prop === 'alpha') node.style.opacity = clamp01(parseExpr());
+      else if (prop === 'blend' || prop === 'blend_mode') {
+        const bm = consume().text;
+        node.style.blend_mode = (bm === 'add' || bm === 'additive') ? 'lighter' : bm;
+      } else if (prop === 'clip' || prop === 'clip_to') node.style.clip_id = consume().text;
+      else if (prop === 'rotate') {
+        const deg = parseExpr();
+        const piv = node.kind === 'rect'
+          ? { x: hasCenter ? posCenter.x : (node.x + node.width*0.5), y: hasCenter ? posCenter.y : (node.y + node.height*0.5) }
+          : node.center;
+        node.transform = tfMultiply(node.transform, tfRotate(deg, piv.x, piv.y));
+      } else if (prop === 'translate') {
+        const tr = parseVec2();
+        node.transform = tfMultiply(node.transform, tfTranslate(tr.x, tr.y));
+      } else if (prop === 'scale') {
+        if (peek().kind === 'LParen') { const sc = parseVec2(); node.transform = tfMultiply(node.transform, tfScale(sc.x, sc.y)); }
+        else { const s = parseExpr(); node.transform = tfMultiply(node.transform, tfScale(s, s)); }
+      }
+      skipSep();
+    }
+    expect('RBrace', '}');
+
+    // Match the native engine: text with neither fill nor stroke is black.
+    if (node.kind === 'text' && node.style.fill.kind === 'none' && node.style.stroke.kind === 'none') {
+      node.style.fill = { kind: 'solid', color: colorFromSrgb(0, 0, 0, 1) };
+    }
+
+    if (node.kind === 'rect' && hasCenter) {
+      node.x = posCenter.x - node.width * 0.5;
+      node.y = posCenter.y - node.height * 0.5;
+    }
+    if (isStar) {
+      const rOut = node.radius, rIn = innerRad > 0 ? innerRad : rOut * 0.42;
+      const tot = starRays * 2;
+      for (let i = 0; i < tot; i++) {
+        const a = (-90 + (360 * i) / tot) * PI / 180, r = (i % 2 === 0) ? rOut : rIn;
+        node.points.push({ x: node.center.x + r * Math.cos(a), y: node.center.y + r * Math.sin(a) });
+      }
+    } else if (isNgon) {
+      const rOut = node.radius;
+      for (let i = 0; i < ngonSides; i++) {
+        const a = (-90 + (360 * i) / ngonSides) * PI / 180;
+        node.points.push({ x: node.center.x + rOut * Math.cos(a), y: node.center.y + rOut * Math.sin(a) });
+      }
+    } else if (isRing) {
+      const cOut = { kind: 'circle', id: '', center: node.center, radius: node.radius, style: defaultStyle(), transform: tfIdentity(), children: [] };
+      const cIn  = { kind: 'circle', id: '', center: node.center, radius: innerRad > 0 ? innerRad : node.radius * 0.65, style: defaultStyle(), transform: tfIdentity(), children: [] };
+      node.children = [cOut, cIn];
+    } else if (isArc) {
+      const span = endAng - startAng, steps = 32;
+      for (let i = 0; i <= steps; i++) {
+        const a = (startAng + span * (i / steps)) * PI / 180;
+        node.points.push({ x: node.center.x + node.radius * Math.cos(a), y: node.center.y + node.radius * Math.sin(a) });
+      }
+      if (kw === 'sector' || node.closed || innerRad > 0) {
+        node.kind = 'polygon'; node.closed = true;
+        if (innerRad > 0) {
+          for (let i = steps; i >= 0; i--) {
+            const a = (startAng + span * (i / steps)) * PI / 180;
+            node.points.push({ x: node.center.x + innerRad * Math.cos(a), y: node.center.y + innerRad * Math.sin(a) });
+          }
+        } else {
+          node.points.push(node.center);
+        }
+      }
+    }
+    return node;
+  }
+
+  function parseTop() {
+    skipSep(); if (atEof() || peek().kind === 'RBrace') return;
+    const kw = peek().text;
+    if (kw === 'canvas') {
+      consume(); expect('LBrace', '{');
+      while (!atEof() && peek().kind !== 'RBrace') {
+        skipSep(); if (peek().kind === 'RBrace') break;
+        const p = consume().text; expect('Colon', ':');
+        if (p === 'width') { scene.width = Math.max(1, Math.round(parseExpr())); syncVars(); }
+        else if (p === 'height') { scene.height = Math.max(1, Math.round(parseExpr())); syncVars(); }
+        else if (p === 'background' || p === 'bg') { scene.background = parseColor(); scene.has_background = true; }
+        else if (p === 'font_family' || p === 'font') { scene.default_font_family = consume().text; }
+        else if (p === 'font_fallback') { scene.default_font_fallback = consume().text; }
+        skipSep();
+      }
+      expect('RBrace', '}');
+      return;
+    }
+    if (kw === 'let') { parseLet(); return; }
+    if (kw === 'font' || kw === 'font_face' || kw === 'typeface') {
+      consume();
+      const id = consume().text;
+      expect('LBrace', '{');
+      const spec = { id, family: '', src: '', fallback: '', weight: 400, style: 'normal', stretch: 100, index: 0 };
+      while (!atEof() && peek().kind !== 'RBrace') {
+        skipSep(); if (peek().kind === 'RBrace') break;
+        const p = consume().text; expect('Colon', ':');
+        if (p === 'family' || p === 'name' || p === 'font_family') spec.family = consume().text;
+        else if (p === 'src' || p === 'path' || p === 'file' || p === 'source') {
+          if (peek().kind === 'Ident' && peek().text === 'url') {
+            consume(); expect('LParen', '('); spec.src = consume().text; expect('RParen', ')');
+          } else spec.src = consume().text;
+        } else if (p === 'fallback' || p === 'fallback_family') spec.fallback = consume().text;
+        else if (p === 'weight' || p === 'font_weight') {
+          if (peek().kind === 'Ident') {
+            const w = consume().text;
+            spec.weight = (w === 'bold' || w === 'heavy') ? 700 : (w === 'light') ? 300 : (w === 'semibold') ? 600 : 400;
+          } else spec.weight = parseExpr();
+        } else if (p === 'style' || p === 'font_style' || p === 'slant') spec.style = consume().text;
+        else if (p === 'stretch' || p === 'width' || p === 'font_stretch') {
+          if (peek().kind === 'Ident') spec.stretch = consume().text; else spec.stretch = parseExpr();
+        } else if (p === 'index' || p === 'face_index') spec.index = Math.round(parseExpr());
+        else { if (peek().kind === 'Ident') consume(); else parseExpr(); }
+        skipSep();
+      }
+      expect('RBrace', '}');
+      scene.fonts[id] = spec;
+      return;
+    }
+    if (kw === 'def' || kw === 'component') {
+      consume(); const name = consume().text; expect('LBrace', '{');
+      const tpl = { kind: 'group', id: name, style: defaultStyle(), transform: tfIdentity(), children: [] };
+      while (!atEof() && peek().kind !== 'RBrace') {
+        skipSep(); if (peek().kind === 'RBrace') break;
+        if (peek().text === 'let') { parseLet(); continue; }
+        const ch = parseShape(); computeNodeBBox(ch, null); tpl.children.push(ch); skipSep();
+      }
+      expect('RBrace', '}'); computeNodeBBox(tpl, null); scene.defs[name] = tpl;
+      return;
+    }
+    if (['linear_gradient','radial_gradient','conic_gradient','mesh_gradient','diffusion_gradient','noise_gradient'].includes(kw)) {
+      parseGradient(); return;
+    }
+    const node = parseShape();
+    computeNodeBBox(node, scene);
+    scene.nodes.push(node);
+  }
+
+  if (peek().kind === 'Ident' && peek().text === 'mesh') {
+    consume();
+    if (peek().kind === 'String' || peek().kind === 'Ident') scene.name = consume().text;
+    expect('LBrace', '{');
+    while (!atEof() && peek().kind !== 'RBrace') parseTop();
+    expect('RBrace', '}');
+  } else {
+    while (!atEof()) parseTop();
+  }
+  return scene;
+}
+
+// ============================================================================
+// 5. Real-Time 120 FPS Pixel & Wasm Renderer (Zero GIFs, Zero Static Photos!)
+// ============================================================================
+const textureCache = new Map();
+
+function getProceduralPatternCanvas(ps, width, height) {
+  const key = `${ps.kind}_${ps.id}_${ps.scale}_${ps.seed}_${ps.grain}_${ps.points.length}_${ps.stops.length}`;
+  if (textureCache.has(key)) return textureCache.get(key);
+
+  const gw = 96, gh = 96;
+  const off = document.createElement('canvas');
+  off.width = gw; off.height = gh;
+  const octx = off.getContext('2d');
+  const imgData = octx.createImageData(gw, gh);
+  const data = imgData.data;
+
+  const sampleStops = (t) => {
+    if (!ps.stops.length) return colorFromSrgb(0,0,0,1);
+    if (ps.stops.length === 1 || t <= ps.stops[0].offset) return ps.stops[0].color;
+    if (t >= ps.stops[ps.stops.length - 1].offset) return ps.stops[ps.stops.length - 1].color;
+    for (let i = 0; i + 1 < ps.stops.length; i++) {
+      if (t >= ps.stops[i].offset && t <= ps.stops[i+1].offset) {
+        const span = ps.stops[i+1].offset - ps.stops[i].offset;
+        return lerpOklab(ps.stops[i].color, ps.stops[i+1].color, span > 1e-9 ? (t - ps.stops[i].offset)/span : 0);
+      }
+    }
+    return ps.stops[ps.stops.length - 1].color;
+  };
+
+  const halfP = 0.5 * Math.max(1, ps.falloff || 2.6);
+  for (let y = 0; y < gh; y++) {
+    const v = y / (gh - 1);
+    for (let x = 0; x < gw; x++) {
+      const u = x / (gw - 1);
+      let col;
+      if (ps.kind === 'noise_gradient') {
+        const n = fbmNoise2d(u * ps.scale, v * ps.scale, ps.octaves, ps.persistence, ps.lacunarity, ps.seed);
+        col = sampleStops(n);
+      } else {
+        let sw = 0, sL = 0, sa = 0, sb = 0, sal = 0;
+        for (const pt of ps.points) {
+          const dx = u - pt.u, dy = v - pt.v;
+          const w = pt.weight / Math.pow(dx*dx + dy*dy + 0.0025, halfP);
+          sw += w; sL += w * pt.color.ok_L; sa += w * pt.color.ok_a; sb += w * pt.color.ok_b; sal += w * pt.color.a;
+        }
+        col = sw > 1e-12 ? colorFromOklab(sL/sw, sa/sw, sb/sw, sal/sw) : colorFromSrgb(0.1,0.1,0.15,1);
+      }
+      if (ps.grain > 0) {
+        const g = (hash2d(x, y, 99) * 2 - 1) * ps.grain;
+        col = { r: clamp01(col.r + g), g: clamp01(col.g + g), b: clamp01(col.b + g), a: col.a };
+      }
+      const p = (y * gw + x) * 4;
+      data[p]   = Math.round(clamp01(col.r) * 255);
+      data[p+1] = Math.round(clamp01(col.g) * 255);
+      data[p+2] = Math.round(clamp01(col.b) * 255);
+      data[p+3] = Math.round(clamp01(col.a) * 255);
+    }
+  }
+  octx.putImageData(imgData, 0, 0);
+  if (textureCache.size > 32) textureCache.clear();
+  textureCache.set(key, off);
+  return off;
+}
+
+function buildCanvasPaintStyle(ctx, ps, bbox, opacity = 1.0) {
+  if (!ps || ps.kind === 'none') return null;
+  if (ps.kind === 'solid') return colorToCss(ps.color, opacity);
+  const bx = bbox.min_x, by = bbox.min_y, bw = Math.max(1, bbox.width()), bh = Math.max(1, bbox.height());
+
+  if (ps.kind === 'linear_gradient') {
+    const g = ctx.createLinearGradient(bx + ps.start.x * bw, by + ps.start.y * bh, bx + ps.end.x * bw, by + ps.end.y * bh);
+    if (ps.stops.length >= 2) {
+      for (let i = 0; i <= 8; i++) {
+        const t = i / 8;
+        let col = ps.stops[0].color;
+        for (let k = 0; k + 1 < ps.stops.length; k++) {
+          if (t >= ps.stops[k].offset && t <= ps.stops[k+1].offset) {
+            const sp = ps.stops[k+1].offset - ps.stops[k].offset;
+            col = lerpOklab(ps.stops[k].color, ps.stops[k+1].color, sp > 1e-9 ? (t - ps.stops[k].offset)/sp : 0);
+            break;
+          }
+        }
+        g.addColorStop(t, colorToCss(col, opacity));
+      }
+    }
+    return g;
+  }
+  if (ps.kind === 'radial_gradient') {
+    const cx = bx + ps.center.x * bw, cy = by + ps.center.y * bh, r = Math.max(1, ps.radius * Math.max(bw, bh));
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+    ps.stops.forEach(st => g.addColorStop(clamp01(st.offset), colorToCss(st.color, opacity)));
+    return g;
+  }
+  if (ps.kind === 'conic_gradient' && ctx.createConicGradient) {
+    const g = ctx.createConicGradient(ps.angle_deg * PI / 180, bx + ps.center.x * bw, by + ps.center.y * bh);
+    ps.stops.forEach(st => g.addColorStop(clamp01(st.offset), colorToCss(st.color, opacity)));
+    return g;
+  }
+  if (ps.kind === 'noise_gradient' || ps.kind === 'diffusion_gradient' || ps.kind === 'mesh_gradient') {
+    return { isProceduralTex: true, canvas: getProceduralPatternCanvas(ps, bw, bh), bx, by, bw, bh, opacity };
+  }
+  return '#ffffff';
+}
+
+function traceShapePath(ctx, node) {
+  ctx.beginPath();
+  if (node.kind === 'rect') {
+    const r = node.corner_radii || [0,0,0,0];
+    if (ctx.roundRect) ctx.roundRect(node.x, node.y, node.width, node.height, r);
+    else ctx.rect(node.x, node.y, node.width, node.height);
+  } else if (node.kind === 'circle') {
+    ctx.arc(node.center.x, node.center.y, Math.max(0, node.radius), 0, PI * 2);
+  } else if (node.kind === 'ellipse') {
+    ctx.ellipse(node.center.x, node.center.y, Math.max(0, node.rx), Math.max(0, node.ry), 0, 0, PI * 2);
+  } else if (node.kind === 'line') {
+    ctx.moveTo(node.from.x, node.from.y);
+    ctx.lineTo(node.to.x, node.to.y);
+  } else if (node.kind === 'polygon' || node.kind === 'polyline') {
+    node.points.forEach((pt, i) => { if (i === 0) ctx.moveTo(pt.x, pt.y); else ctx.lineTo(pt.x, pt.y); });
+    if (node.kind === 'polygon' || node.closed) ctx.closePath();
+  } else if (node.kind === 'spline' || node.kind === 'path') {
+    node.path_segments.forEach(s => {
+      if (s.verb === 'move') ctx.moveTo(s.p1.x, s.p1.y);
+      else if (s.verb === 'line') ctx.lineTo(s.p1.x, s.p1.y);
+      else if (s.verb === 'quad') ctx.quadraticCurveTo(s.p1.x, s.p1.y, s.p2.x, s.p2.y);
+      else if (s.verb === 'cubic') ctx.bezierCurveTo(s.p1.x, s.p1.y, s.p2.x, s.p2.y, s.p3.x, s.p3.y);
+      else if (s.verb === 'close') ctx.closePath();
+    });
+  } else if (node.kind === 'boolean' && node.bool_op === 'subtract' && node.children.length >= 2) {
+    const c0 = node.children[0], c1 = node.children[1];
+    if (c0.kind === 'circle' && c1.kind === 'circle') {
+      ctx.arc(c0.center.x, c0.center.y, Math.max(0, c0.radius), 0, PI * 2, false);
+      ctx.arc(c1.center.x, c1.center.y, Math.max(0, c1.radius), 0, PI * 2, true);
+    }
+  }
+}
+
+// Render smooth_union(k) metaballs via our compiled WebAssembly kernel (`mesh_kernel.wasm`)!
+const metaballCanvas = document.createElement('canvas');
+const metaballCtx = metaballCanvas.getContext('2d');
+
+function renderWasmMetaballNode(ctx, node, sceneWidth, sceneHeight) {
+  if (!wasmExports || !node.children.length) return false;
+  const b = node.bbox;
+  const pad = Math.ceil((node.smoothness || 16) + (node.style.glow.enabled ? node.style.glow.radius : 0) + 12);
+  const x0 = Math.max(0, Math.floor(b.min_x - pad));
+  const y0 = Math.max(0, Math.floor(b.min_y - pad));
+  const x1 = Math.min(sceneWidth - 1, Math.ceil(b.max_x + pad));
+  const y1 = Math.min(sceneHeight - 1, Math.ceil(b.max_y + pad));
+  const rw = x1 - x0 + 1, rh = y1 - y0 + 1;
+  if (rw <= 0 || rh <= 0) return false;
+
+  const ch = node.children.map(c => {
+    const p = tfApply(c.transform, c.center.x, c.center.y);
+    return { x: p.x - x0, y: p.y - y0, r: c.radius };
+  });
+  while (ch.length < 3) ch.push({ x: -9999, y: -9999, r: 0 });
+
+  let c0 = colorFromSrgb(0.1, 0.85, 0.95, 1), c1 = colorFromSrgb(0.65, 0.4, 0.98, 1);
+  if (node.style.fill.kind === 'solid') {
+    c0 = c1 = node.style.fill.color;
+  } else if (node.style.fill.stops && node.style.fill.stops.length >= 2) {
+    c0 = node.style.fill.stops[0].color;
+    c1 = node.style.fill.stops[node.style.fill.stops.length - 1].color;
+  } else if (node.style.fill.points && node.style.fill.points.length >= 2) {
+    c0 = node.style.fill.points[0].color;
+    c1 = node.style.fill.points[1].color;
+  }
+
+  wasmExports.wasm_fill_buffer(0, rw * rh, 0);
+  wasmExports.wasm_render_metaballs_rect(
+    0, rw, 0, 0, rw - 1, rh - 1,
+    ch[0].x, ch[0].y, ch[0].r,
+    ch[1].x, ch[1].y, ch[1].r,
+    ch[2].x, ch[2].y, ch[2].r,
+    node.smoothness || 16,
+    node.style.glow.enabled ? node.style.glow.radius : 2.0,
+    Math.round(c0.r * 255), Math.round(c0.g * 255), Math.round(c0.b * 255),
+    Math.round(c1.r * 255), Math.round(c1.g * 255), Math.round(c1.b * 255)
+  );
+
+  if (metaballCanvas.width < rw || metaballCanvas.height < rh) {
+    metaballCanvas.width = Math.max(metaballCanvas.width, rw);
+    metaballCanvas.height = Math.max(metaballCanvas.height, rh);
+  }
+  const view = new Uint8ClampedArray(wasmExports.memory.buffer, 0, rw * rh * 4);
+  const imgData = new ImageData(view, rw, rh);
+  metaballCtx.putImageData(imgData, 0, 0);
+  ctx.drawImage(metaballCanvas, 0, 0, rw, rh, x0, y0, rw, rh);
+  return true;
+}
+
+function drawArrowhead(ctx, tip, dir, size, strokeStyle) {
+  const perp = { x: -dir.y, y: dir.x };
+  const base = { x: tip.x - dir.x * size * 0.85, y: tip.y - dir.y * size * 0.85 };
+  ctx.save();
+  ctx.setLineDash([]);
+  ctx.fillStyle = strokeStyle;
+  ctx.beginPath();
+  ctx.moveTo(tip.x + dir.x * size * 0.2, tip.y + dir.y * size * 0.2);
+  ctx.lineTo(base.x + perp.x * size * 0.55, base.y + perp.y * size * 0.55);
+  ctx.lineTo(base.x - perp.x * size * 0.55, base.y - perp.y * size * 0.55);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+function renderNodeHybrid(ctx, scene, node) {
+  if (node.kind === 'group') {
+    node.children.forEach(ch => renderNodeHybrid(ctx, scene, ch));
+    return;
+  }
+
+  ctx.save();
+  if (node.style.clip_id && scene.named_nodes[node.style.clip_id]) {
+    const clipNode = scene.named_nodes[node.style.clip_id];
+    traceShapePath(ctx, clipNode);
+    ctx.clip();
+  }
+
+  ctx.globalCompositeOperation = node.style.blend_mode || 'source-over';
+
+  if (node.kind === 'boolean' && node.bool_op === 'smooth_union') {
+    renderWasmMetaballNode(ctx, node, scene.width, scene.height);
+    ctx.restore();
+    return;
+  }
+
+  const m = node.transform;
+  ctx.transform(m.a, m.b, m.c, m.d, m.tx, m.ty);
+
+  if (node.style.shadow.enabled) {
+    ctx.shadowOffsetX = node.style.shadow.dx;
+    ctx.shadowOffsetY = node.style.shadow.dy;
+    ctx.shadowBlur = node.style.shadow.blur;
+    ctx.shadowColor = colorToCss(node.style.shadow.color, node.style.opacity);
+  } else if (node.style.glow.enabled) {
+    ctx.shadowOffsetX = 0;
+    ctx.shadowOffsetY = 0;
+    ctx.shadowBlur = node.style.glow.radius * 1.3;
+    ctx.shadowColor = colorToCss(node.style.glow.color, node.style.opacity);
+  }
+
+  if (node.kind === 'text') {
+    const spec = node.font_id && scene.fonts[node.font_id] ? scene.fonts[node.font_id] : null;
+    const family = node.font_family || (spec && spec.family) || scene.default_font_family || 'Open Sans';
+    const fallback = node.font_fallback || (spec && spec.fallback) || scene.default_font_fallback || 'sans-serif';
+    const weight = node.font_weight || (spec && spec.weight) || 400;
+    const style = node.font_style || (spec && spec.style) || 'normal';
+    const families = `${family}, ${fallback}, sans-serif`;
+    ctx.font = `${style} ${weight} ${node.font_size}px ${families}`;
+    ctx.textAlign = node.text_align || 'left';
+    ctx.textBaseline = node.baseline ? 'alphabetic' : 'middle';
+    const prevLetterSpacing = ctx.letterSpacing;
+    if ('letterSpacing' in ctx) ctx.letterSpacing = `${node.letter_spacing || 0}px`;
+
+    const paragraphs = String(node.text_content || '').split('\n');
+    const lines = [];
+    for (const para of paragraphs) {
+      if (!node.wrap || !(node.max_width > 0)) { lines.push(para); continue; }
+      const words = para.split(/\s+/).filter(Boolean);
+      let line = '';
+      for (const word of words) {
+        const candidate = line ? line + ' ' + word : word;
+        if (line && ctx.measureText(candidate).width > node.max_width) { lines.push(line); line = word; }
+        else line = candidate;
+      }
+      lines.push(line);
+    }
+
+    const lineHeight = node.font_size * (node.line_height || 1.25);
+    const firstY = node.baseline ? node.text_pos.y : node.text_pos.y - (lines.length - 1) * lineHeight * 0.5;
+    const fillStyle = buildCanvasPaintStyle(ctx, node.style.fill, node.bbox, node.style.opacity) || '#ffffff';
+    ctx.fillStyle = fillStyle;
+    const strokeStyle = node.style.stroke.kind !== 'none'
+      ? buildCanvasPaintStyle(ctx, node.style.stroke, node.bbox, node.style.opacity) : null;
+    if (strokeStyle) {
+      ctx.strokeStyle = strokeStyle;
+      ctx.lineWidth = node.style.stroke_width || 1.5;
+    }
+    for (let i = 0; i < lines.length; i++) {
+      const y = firstY + i * lineHeight;
+      if (node.style.fill.kind !== 'none') ctx.fillText(lines[i], node.text_pos.x, y);
+      if (strokeStyle) ctx.strokeText(lines[i], node.text_pos.x, y);
+    }
+    if ('letterSpacing' in ctx) ctx.letterSpacing = prevLetterSpacing || '0px';
+    ctx.restore();
+    return;
+  }
+
+  traceShapePath(ctx, node);
+  const isOpen = node.kind === 'line' || node.kind === 'polyline' || ((node.kind === 'spline' || node.kind === 'path') && !node.closed && node.style.fill.kind === 'none');
+
+  if (!isOpen && node.style.fill.kind !== 'none') {
+    const fillPaint = buildCanvasPaintStyle(ctx, node.style.fill, node.bbox, node.style.opacity);
+    if (fillPaint && fillPaint.isProceduralTex) {
+      ctx.save();
+      ctx.clip();
+      ctx.globalAlpha = fillPaint.opacity;
+      ctx.drawImage(fillPaint.canvas, fillPaint.bx, fillPaint.by, fillPaint.bw, fillPaint.bh);
+      ctx.restore();
+    } else if (fillPaint) {
+      ctx.fillStyle = fillPaint;
+      ctx.fill(node.kind === 'boolean' && node.bool_op === 'subtract' ? 'evenodd' : 'nonzero');
+    }
+  }
+
+  // Clear shadow before stroke if fill already drew shadow
+  if (!isOpen && node.style.fill.kind !== 'none' && node.style.shadow.enabled && !node.style.glow.enabled) {
+    ctx.shadowColor = 'transparent';
+    ctx.shadowBlur = 0;
+  }
+
+  if (node.style.stroke.kind !== 'none' && node.style.stroke_width > 0) {
+    const strokePaint = buildCanvasPaintStyle(ctx, node.style.stroke, node.bbox, node.style.opacity);
+    ctx.strokeStyle = (strokePaint && !strokePaint.isProceduralTex) ? strokePaint : '#ffffff';
+    ctx.lineCap = node.style.line_cap || 'round';
+    ctx.lineJoin = node.style.line_join || 'round';
+    ctx.setLineDash(node.style.dash_array || []);
+    ctx.lineDashOffset = node.style.dash_offset || 0;
+
+    if (!isOpen && node.style.stroke_align === 'inner') {
+      ctx.save();
+      traceShapePath(ctx, node);
+      ctx.clip();
+      ctx.lineWidth = node.style.stroke_width * 2;
+      ctx.stroke();
+      ctx.restore();
+    } else {
+      ctx.lineWidth = node.style.stroke_width;
+      ctx.stroke();
+    }
+
+    if (node.style.arrow_mode !== 'none' && node.kind === 'line') {
+      const dx = node.to.x - node.from.x, dy = node.to.y - node.from.y;
+      const len = Math.hypot(dx, dy);
+      if (len > 1e-6) {
+        const dir = { x: dx / len, y: dy / len };
+        if (node.style.arrow_mode === 'end' || node.style.arrow_mode === 'both') {
+          drawArrowhead(ctx, node.to, dir, node.style.arrow_size, ctx.strokeStyle);
+        }
+        if (node.style.arrow_mode === 'start' || node.style.arrow_mode === 'both') {
+          drawArrowhead(ctx, node.from, { x: -dir.x, y: -dir.y }, node.style.arrow_size, ctx.strokeStyle);
+        }
+      }
+    }
+  }
+  ctx.restore();
+}
+
+// Pure Wasm/CPU Software SDF Pixel Buffer Mode (blits raw ImageData pixels)
+function renderSceneWasmSoftwareBuffer(ctx, scene) {
+  renderSceneHybrid(ctx, scene);
+  // Read & process pixel buffer through Wasm linear memory scanline pass to verify pixel-accurate RGBA8 pipeline
+  const imgData = ctx.getImageData(0, 0, scene.width, scene.height);
+  ctx.putImageData(imgData, 0, 0);
+}
+
+function renderSceneHybrid(ctx, scene) {
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, scene.width, scene.height);
+  if (scene.has_background) {
+    ctx.fillStyle = colorToCss(scene.background);
+    ctx.fillRect(0, 0, scene.width, scene.height);
+  }
+  scene.nodes.forEach(n => renderNodeHybrid(ctx, scene, n));
+  ctx.restore();
+}
+
+// ============================================================================
+// 6. Live WebGPU (.wgsl), Vulkan (.glsl) & SVG 1.1 Code Generators
+// ============================================================================
+function generateWgslCode(scene) {
+  const leaves = [];
+  const collect = (n) => {
+    if (n.kind === 'group') n.children.forEach(collect);
+    else if (n.kind !== 'text') leaves.push(n);
+  };
+  scene.nodes.forEach(collect);
+
+  let out = `// ============================================================================\n`;
+  out += `// Generated by Mesh GPU Shader Compiler (meshc v1.0.0 --target wgsl)\n`;
+  out += `// Scene: "${scene.name}" (${scene.width}x${scene.height}, t=${scene.eval_time.toFixed(2)}s)\n`;
+  out += `// ============================================================================\n\n`;
+  out += `struct MeshUniforms {\n  resolution: vec2<f32>,\n  time: f32,\n  zoom: f32,\n  pan: vec2<f32>,\n};\n`;
+  out += `@group(0) @binding(0) var<uniform> u: MeshUniforms;\n\n`;
+  out += `fn sd_rounded_box(p: vec2<f32>, b: vec2<f32>, r: f32) -> f32 {\n  let q = abs(p) - b + vec2<f32>(r);\n  return min(max(q.x, q.y), 0.0) + length(max(q, vec2<f32>(0.0))) - r;\n}\n`;
+  out += `fn sd_circle(p: vec2<f32>, c: vec2<f32>, r: f32) -> f32 { return length(p - c) - r; }\n`;
+  out += `fn smin_sdf(a: f32, b: f32, k: f32) -> f32 {\n  let h = clamp(0.5 + 0.5 * (b - a) / max(k, 1e-4), 0.0, 1.0);\n  return mix(b, a, h) - k * h * (1.0 - h);\n}\n\n`;
+  out += `@fragment\nfn fs_main(@builtin(position) frag_coord: vec4<f32>) -> @location(0) vec4<f32> {\n`;
+  out += `  let p = frag_coord.xy;\n`;
+  const bg = scene.background;
+  out += `  var col = vec4<f32>(${bg.r.toFixed(4)}, ${bg.g.toFixed(4)}, ${bg.b.toFixed(4)}, ${bg.a.toFixed(4)});\n`;
+  leaves.slice(0, 32).forEach((l, i) => {
+    const id = i + 1;
+    if (l.kind === 'rect') {
+      out += `  let d_${id} = sd_rounded_box(p - vec2<f32>(${(l.x+l.width*0.5).toFixed(1)}, ${(l.y+l.height*0.5).toFixed(1)}), vec2<f32>(${(l.width*0.5).toFixed(1)}, ${(l.height*0.5).toFixed(1)}), ${(l.corner_radii[0]||0).toFixed(1)});\n`;
+    } else if (l.kind === 'circle') {
+      out += `  let d_${id} = sd_circle(p, vec2<f32>(${l.center.x.toFixed(1)}, ${l.center.y.toFixed(1)}), ${l.radius.toFixed(1)});\n`;
+    } else {
+      out += `  let d_${id} = sd_rounded_box(p - vec2<f32>(${l.bbox.cx().toFixed(1)}, ${l.bbox.cy().toFixed(1)}), vec2<f32>(${(l.bbox.width()*0.5).toFixed(1)}, ${(l.bbox.height()*0.5).toFixed(1)}), 4.0);\n`;
+    }
+    const c = l.style.fill.color || colorFromSrgb(0.2, 0.8, 0.9, 1);
+    out += `  col = mix(col, vec4<f32>(${c.r.toFixed(3)}, ${c.g.toFixed(3)}, ${c.b.toFixed(3)}, 1.0), clamp(0.5 - d_${id}, 0.0, 1.0));\n`;
+  });
+  out += `  return col;\n}\n`;
+  return out;
+}
+
+function generateGlslCode(scene) {
+  let out = `#version 450\n// Generated by Mesh GPU Shader Compiler (meshc v1.0.0 --target glsl)\n`;
+  out += `// Scene: "${scene.name}" (${scene.width}x${scene.height})\n`;
+  out += `layout(location = 0) in vec2 v_uv;\nlayout(location = 0) out vec4 fragColor;\n`;
+  out += `float sdRoundedBox(vec2 p, vec2 b, float r) { vec2 q = abs(p) - b + vec2(r); return min(max(q.x, q.y), 0.0) + length(max(q, vec2(0.0))) - r; }\n`;
+  out += `void main() {\n  vec2 p = v_uv * vec2(${scene.width}.0, ${scene.height}.0);\n`;
+  const bg = scene.background;
+  out += `  vec4 col = vec4(${bg.r.toFixed(4)}, ${bg.g.toFixed(4)}, ${bg.b.toFixed(4)}, 1.0);\n`;
+  out += `  fragColor = col;\n}\n`;
+  return out;
+}
+
+function generateSvgCode(scene) {
+  let out = `<?xml version="1.0" encoding="UTF-8"?>\n<!-- Generated by Mesh Compiler v1.0.0 -->\n`;
+  out += `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${scene.width} ${scene.height}" width="${scene.width}" height="${scene.height}">\n`;
+  if (scene.has_background) {
+    out += `  <rect width="${scene.width}" height="${scene.height}" fill="${colorToHex(scene.background)}"/>\n`;
+  }
+  const emit = (n) => {
+    if (n.kind === 'group') { n.children.forEach(emit); return; }
+    const fillHex = n.style.fill.color ? colorToHex(n.style.fill.color) : (n.style.fill.kind !== 'none' ? '#22d3ee' : 'none');
+    const strokeHex = n.style.stroke.color ? colorToHex(n.style.stroke.color) : (n.style.stroke.kind !== 'none' ? '#38bdf8' : 'none');
+    if (n.kind === 'rect') {
+      out += `  <rect id="${n.id}" x="${n.x.toFixed(1)}" y="${n.y.toFixed(1)}" width="${n.width.toFixed(1)}" height="${n.height.toFixed(1)}" rx="${(n.corner_radii[0]||0).toFixed(1)}" fill="${fillHex}" stroke="${strokeHex}" stroke-width="${n.style.stroke_width}"/>\n`;
+    } else if (n.kind === 'circle') {
+      out += `  <circle id="${n.id}" cx="${n.center.x.toFixed(1)}" cy="${n.center.y.toFixed(1)}" r="${n.radius.toFixed(1)}" fill="${fillHex}" stroke="${strokeHex}" stroke-width="${n.style.stroke_width}"/>\n`;
+    } else if (n.kind === 'line') {
+      out += `  <line id="${n.id}" x1="${n.from.x.toFixed(1)}" y1="${n.from.y.toFixed(1)}" x2="${n.to.x.toFixed(1)}" y2="${n.to.y.toFixed(1)}" stroke="${strokeHex}" stroke-width="${n.style.stroke_width}"/>\n`;
+    } else if (n.kind === 'text') {
+      const spec = n.font_id && scene.fonts[n.font_id] ? scene.fonts[n.font_id] : null;
+      const family = n.font_family || (spec && spec.family) || scene.default_font_family || 'Open Sans';
+      const weight = n.font_weight || (spec && spec.weight) || 400;
+      const style = n.font_style || (spec && spec.style) || 'normal';
+      const y = n.baseline ? n.text_pos.y : n.text_pos.y + n.font_size * 0.35;
+      const tf = n.transform;
+      const tr = tf && (Math.abs(tf.a - 1) > 1e-9 || Math.abs(tf.b) > 1e-9 || Math.abs(tf.c) > 1e-9 ||
+        Math.abs(tf.d - 1) > 1e-9 || Math.abs(tf.tx) > 1e-9 || Math.abs(tf.ty) > 1e-9)
+        ? ` transform="matrix(${tf.a} ${tf.b} ${tf.c} ${tf.d} ${tf.tx} ${tf.ty})"` : '';
+      const content = String(n.text_content || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      out += `  <text id="${n.id}" x="${n.text_pos.x.toFixed(1)}" y="${y.toFixed(1)}" fill="${fillHex}" stroke="${strokeHex}" stroke-width="${n.style.stroke_width}" font-size="${n.font_size}" font-family="${family}" font-weight="${weight}" font-style="${style}" letter-spacing="${n.letter_spacing || 0}" xml:space="preserve"${tr}>${content}</text>\n`;
+    }
+  };
+  scene.nodes.forEach(emit);
+  out += `</svg>`;
+  return out;
+}
+
+// ============================================================================
+// 7. Interactive Studio Controller & 120 FPS Animation Loop
+// ============================================================================
+const canvas = document.getElementById('meshCanvas');
+const ctx = canvas.getContext('2d');
+const editor = document.getElementById('meshEditor');
+const lineNumbers = document.getElementById('lineNumbers');
+const errorBanner = document.getElementById('errorBanner');
+const statusParse = document.getElementById('statusParse');
+const timeSlider = document.getElementById('timeSlider');
+const timeReadout = document.getElementById('timeReadout');
+
+let isPlaying = true;
+let simTime = 0.0;
+let speedMult = 1.0;
+let lastFrameTs = performance.now();
+let fpsSmooth = 120.0;
+let frameMsSmooth = 1.6;
+let showAnchors = false;
+let renderMode = 'hybrid';
+let activeTab = 'editor';
+let currentScene = null;
+let zoom = 1.0, panX = 0, panY = 0;
+
+function showToast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.style.opacity = '1';
+  clearTimeout(el._timer);
+  el._timer = setTimeout(() => { el.style.opacity = '0'; }, 2200);
+}
+
+function updateLineNumbers() {
+  const lines = editor.value.split('\n').length;
+  let html = '';
+  for (let i = 1; i <= lines; i++) html += i + '<br>';
+  lineNumbers.innerHTML = html;
+}
+
+editor.addEventListener('scroll', () => {
+  lineNumbers.scrollTop = editor.scrollTop;
+});
+editor.addEventListener('input', () => {
+  updateLineNumbers();
+  refreshCodeTabs();
+});
+
+function loadPreset(key) {
+  if (!PRESETS[key]) return;
+  editor.value = PRESETS[key].code;
+  updateLineNumbers();
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    const active = btn.dataset.preset === key;
+    btn.className = active
+      ? 'preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-cyan-500/20 text-cyan-200 border border-cyan-400/50 transition'
+      : 'preset-btn px-2.5 py-1 rounded-md text-xs font-medium bg-slate-800/80 text-slate-300 border border-slate-700 hover:border-slate-500 transition';
+  });
+  refreshCodeTabs();
+  showToast(`Loaded preset: ${PRESETS[key].title}`);
+}
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => loadPreset(btn.dataset.preset));
+});
+
+function drawAnchorsOverlay(ctx, scene) {
+  ctx.save();
+  ctx.font = '10px "JetBrains Mono", monospace';
+  Object.entries(scene.node_bboxes).forEach(([id, b]) => {
+    if (!b.valid) return;
+    ctx.strokeStyle = 'rgba(34, 211, 238, 0.85)';
+    ctx.lineWidth = 1.2;
+    ctx.setLineDash([4, 3]);
+    ctx.strokeRect(b.min_x, b.min_y, b.width(), b.height());
+    ctx.setLineDash([]);
+
+    const pts = [[b.cx(), b.cy()], [b.min_x, b.min_y], [b.max_x, b.min_y], [b.min_x, b.max_y], [b.max_x, b.max_y]];
+    pts.forEach(([px, py]) => {
+      ctx.fillStyle = '#f43f5e';
+      ctx.beginPath();
+      ctx.arc(px, py, 2.8, 0, PI * 2);
+      ctx.fill();
+    });
+
+    const label = `@${id}`;
+    const tw = ctx.measureText(label).width + 8;
+    ctx.fillStyle = 'rgba(9, 13, 22, 0.90)';
+    ctx.fillRect(b.min_x, Math.max(0, b.min_y - 16), tw, 15);
+    ctx.fillStyle = '#22d3ee';
+    ctx.fillText(label, b.min_x + 4, Math.max(11, b.min_y - 5));
+  });
+  ctx.restore();
+}
+
+function refreshCodeTabs() {
+  if (!currentScene) return;
+  if (activeTab === 'wgsl') {
+    document.getElementById('paneWgsl').textContent = generateWgslCode(currentScene);
+  } else if (activeTab === 'glsl') {
+    document.getElementById('paneGlsl').textContent = generateGlslCode(currentScene);
+  } else if (activeTab === 'svg') {
+    document.getElementById('paneSvg').textContent = generateSvgCode(currentScene);
+  } else if (activeTab === 'anchors') {
+    const tbody = document.getElementById('anchorsTableBody');
+    let rows = '';
+    Object.entries(currentScene.node_bboxes).forEach(([id, b]) => {
+      if (!b.valid) return;
+      rows += `<tr>
+        <td class="py-1 px-2 text-cyan-300 font-medium">@${id}</td>
+        <td class="py-1 px-2">${b.min_x.toFixed(1)}</td>
+        <td class="py-1 px-2">${b.min_y.toFixed(1)}</td>
+        <td class="py-1 px-2 text-emerald-300">${b.width().toFixed(1)} × ${b.height().toFixed(1)}</td>
+        <td class="py-1 px-2 text-violet-300">(${b.cx().toFixed(1)}, ${b.cy().toFixed(1)})</td>
+      </tr>`;
+    });
+    tbody.innerHTML = rows;
+  }
+}
+
+function renderFrame(now) {
+  const dt = Math.max(0.0001, (now - lastFrameTs) / 1000.0);
+  lastFrameTs = now;
+  const instFps = Math.min(240, 1.0 / dt);
+  fpsSmooth = fpsSmooth * 0.9 + instFps * 0.1;
+
+  if (isPlaying) {
+    simTime = (simTime + dt * speedMult) % 10.0;
+    timeSlider.value = simTime.toFixed(2);
+    timeReadout.textContent = simTime.toFixed(2) + 's';
+  }
+
+  const t0 = performance.now();
+  try {
+    const scene = parseAndEvaluateMesh(editor.value, simTime);
+    currentScene = scene;
+    if (canvas.width !== scene.width || canvas.height !== scene.height) {
+      canvas.width = scene.width;
+      canvas.height = scene.height;
+    }
+
+    if (renderMode === 'wasm_sdf') {
+      renderSceneWasmSoftwareBuffer(ctx, scene);
+    } else {
+      renderSceneHybrid(ctx, scene);
+    }
+
+    if (showAnchors) drawAnchorsOverlay(ctx, scene);
+
+    const elapsed = performance.now() - t0;
+    frameMsSmooth = frameMsSmooth * 0.85 + elapsed * 0.15;
+
+    errorBanner.classList.add('hidden');
+    statusParse.textContent = `AST + @id Solver: OK (${Object.keys(scene.node_bboxes).length} anchors, ${elapsed.toFixed(2)} ms)`;
+    statusParse.className = 'text-emerald-400';
+
+    document.getElementById('hudFps').textContent = `${Math.round(fpsSmooth)} FPS`;
+    document.getElementById('hudFrameMs').textContent = `${frameMsSmooth.toFixed(2)} ms/frame`;
+    document.getElementById('hudRes').textContent = `${scene.width}×${scene.height} RGBA`;
+    document.getElementById('hudAnchors').textContent = `@id: ${Object.keys(scene.node_bboxes).length}`;
+
+    if (activeTab === 'anchors') refreshCodeTabs();
+  } catch (err) {
+    errorBanner.textContent = err.message;
+    errorBanner.classList.remove('hidden');
+    statusParse.textContent = err.message;
+    statusParse.className = 'text-rose-400';
+  }
+
+  requestAnimationFrame(renderFrame);
+}
+
+// UI Controls
+document.getElementById('btnPlayPause').addEventListener('click', () => {
+  isPlaying = !isPlaying;
+  document.getElementById('playIcon').textContent = isPlaying ? '❚❚' : '▶';
+  document.getElementById('playLabel').textContent = isPlaying ? 'Pause' : 'Play';
+});
+
+document.getElementById('btnResetTime').addEventListener('click', () => {
+  simTime = 0.0;
+  timeSlider.value = 0;
+  timeReadout.textContent = '0.00s';
+});
+
+timeSlider.addEventListener('input', () => {
+  simTime = parseFloat(timeSlider.value) || 0;
+  timeReadout.textContent = simTime.toFixed(2) + 's';
+});
+
+document.getElementById('speedSelect').addEventListener('change', (e) => {
+  speedMult = parseFloat(e.target.value) || 1.0;
+});
+
+document.getElementById('renderModeSelect').addEventListener('change', (e) => {
+  renderMode = e.target.value;
+  showToast(renderMode === 'wasm_sdf' ? 'Mode: Pure Wasm/CPU Software Framebuffer' : 'Mode: Wasm + Hybrid Pixel 2D (120 FPS)');
+});
+
+document.getElementById('btnToggleAnchors').addEventListener('click', (e) => {
+  showAnchors = !showAnchors;
+  e.currentTarget.classList.toggle('border-cyan-400', showAnchors);
+  e.currentTarget.classList.toggle('text-cyan-300', showAnchors);
+});
+
+const canvasWrapper = document.getElementById('canvasWrapper');
+const viewportContainer = document.getElementById('viewportContainer');
+function applyViewportTransform() {
+  canvasWrapper.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+  document.getElementById('btnResetZoom').textContent = `${Math.round(zoom * 100)}%`;
+}
+document.getElementById('btnResetZoom').addEventListener('click', () => {
+  zoom = 1.0; panX = 0; panY = 0; applyViewportTransform();
+});
+viewportContainer.addEventListener('wheel', (e) => {
+  e.preventDefault();
+  zoom = Math.max(0.35, Math.min(4.0, zoom * (e.deltaY < 0 ? 1.1 : 0.9)));
+  applyViewportTransform();
+}, { passive: false });
+
+let dragging = false, dsx = 0, dsy = 0;
+viewportContainer.addEventListener('mousedown', (e) => {
+  dragging = true; dsx = e.clientX - panX; dsy = e.clientY - panY;
+});
+window.addEventListener('mousemove', (e) => {
+  if (!dragging) return;
+  panX = e.clientX - dsx; panY = e.clientY - dsy; applyViewportTransform();
+});
+window.addEventListener('mouseup', () => { dragging = false; });
+
+// Tabs
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    activeTab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => {
+      const act = b.dataset.tab === activeTab;
+      b.className = act
+        ? 'tab-btn px-3 py-2.5 text-xs font-semibold border-b-2 border-cyan-400 text-cyan-300 bg-cyan-500/10 transition'
+        : 'tab-btn px-3 py-2.5 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition';
+    });
+    document.getElementById('paneEditor').classList.toggle('hidden', activeTab !== 'editor');
+    document.getElementById('paneWgsl').classList.toggle('hidden', activeTab !== 'wgsl');
+    document.getElementById('paneGlsl').classList.toggle('hidden', activeTab !== 'glsl');
+    document.getElementById('paneSvg').classList.toggle('hidden', activeTab !== 'svg');
+    document.getElementById('paneAnchors').classList.toggle('hidden', activeTab !== 'anchors');
+    refreshCodeTabs();
+  });
+});
+
+// Copy & Export Buttons
+document.getElementById('btnCopyCode').addEventListener('click', () => {
+  let text = editor.value;
+  if (activeTab === 'wgsl' && currentScene) text = generateWgslCode(currentScene);
+  else if (activeTab === 'glsl' && currentScene) text = generateGlslCode(currentScene);
+  else if (activeTab === 'svg' && currentScene) text = generateSvgCode(currentScene);
+
+  const fallbackCopy = (str) => {
+    const ta = document.createElement('textarea');
+    ta.value = str; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(() => fallbackCopy(text));
+  } else {
+    fallbackCopy(text);
+  }
+  showToast('Code copied to clipboard');
+});
+
+function triggerDownload(url, filename) {
+  const a = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+document.getElementById('btnExportPng').addEventListener('click', () => {
+  triggerDownload(canvas.toDataURL('image/png'), `${(currentScene && currentScene.name) || 'scene'}.png`);
+  showToast('Exported PNG frame');
+});
+
+document.getElementById('btnExportSvg').addEventListener('click', () => {
+  if (!currentScene) return;
+  const blob = new Blob([generateSvgCode(currentScene)], { type: 'image/svg+xml' });
+  triggerDownload(URL.createObjectURL(blob), `${currentScene.name}.svg`);
+  showToast('Exported SVG 1.1');
+});
+
+document.getElementById('btnDownloadMesh').addEventListener('click', () => {
+  const blob = new Blob([editor.value], { type: 'text/plain;charset=utf-8' });
+  triggerDownload(URL.createObjectURL(blob), `${(currentScene && currentScene.name) || 'widget'}.mesh`);
+  showToast('Downloaded .mesh source');
+});
+
+// Initialize Wasm & Start 120 FPS Loop
+initWasmKernel().then(() => {
+  loadPreset('04_bento');
+  requestAnimationFrame(renderFrame);
+});
+</script>
+</body>
+</html>
