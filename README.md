@@ -137,7 +137,9 @@ text {
   the rest as fallbacks.
 
 `examples/09_typography_specimen.mesh` is a self-contained showcase using the
-bundled Open Sans faces in `examples/fonts/`.
+bundled Open Sans faces in `examples/fonts/`. Open Sans is distributed under
+the SIL Open Font License 1.1; the license text is kept in
+`examples/fonts/OFL.txt`.
 
 ## Examples
 
@@ -157,6 +159,18 @@ bundled Open Sans faces in `examples/fonts/`.
 
 The goose showcase includes source, MP4 renders, still PNGs and an animated
 side-by-side comparison in `examples/10_goose_*` and `examples/11_goose_*`.
+
+### Goose showcase — Mesh vs SVG
+
+Click a still to open the 1600×1000, 30 fps, 6-second H.264 MP4.
+
+| Mesh | SVG |
+| :---: | :---: |
+| [![Mesh goose](examples/10_goose_mesh.png)](examples/10_goose_mesh.mp4) | [![SVG goose](examples/11_goose_svg.png)](examples/11_goose_svg.mp4) |
+| [MP4](examples/10_goose_mesh.mp4) · [Source](examples/10_goose_mesh.mesh) | [MP4](examples/11_goose_svg.mp4) · [Source](examples/11_goose_svg.svg) |
+
+[Side-by-side comparison video](examples/10_goose_comparison.mp4) ·
+[comparison still](examples/10_goose_comparison.png).
 
 ## Tests
 
