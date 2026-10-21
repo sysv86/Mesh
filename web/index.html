@@ -1,51 +1,100 @@
 <!DOCTYPE html>
-<html lang="ru" class="dark">
+<html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>MESH Engine v1.0.0 — Real-Time 120 FPS Wasm & Pixel Web Studio</title>
+<title>Mesh — Vector Graphics Studio</title>
 <script src="https://cdn.tailwindcss.com/3.4.17"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Open+Sans:wght@400;600;700&family=Noto+Sans:wght@400;600;700&family=Noto+Serif:wght@400;700&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-dark: #07090e;
-    --panel-bg: #0d111a;
-    --border-col: #1e2638;
-    --accent-cyan: #22d3ee;
-    --accent-emerald: #10b981;
-    --accent-violet: #a855f7;
+    --bg: #0a0a0b;
+    --panel: #111113;
+    --panel-2: #161618;
+    --line: #27272b;
+    --text: #e8e8e8;
+    --muted: #8b8b93;
+    --accent: #d4b273;
   }
   * { box-sizing: border-box; }
+  html, body {
+    background: var(--bg) !important;
+    color: var(--text) !important;
+  }
   body {
-    background-color: var(--bg-dark);
-    color: #e2e8f0;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     margin: 0;
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
   }
+  ::selection { background: var(--accent); color: #0a0a0b; }
   .mono { font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace; }
   .checker-viewport {
-    background-color: #06080d;
-    background-image:
-      radial-gradient(rgba(56, 189, 248, 0.10) 1px, transparent 1px),
-      linear-gradient(to right, rgba(30, 41, 59, 0.22) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(30, 41, 59, 0.22) 1px, transparent 1px);
-    background-size: 20px 20px, 80px 80px, 80px 80px;
+    background: #0e0e10 !important;
+    background-image: none !important;
   }
-  textarea::-webkit-scrollbar, pre::-webkit-scrollbar, .scroll-pane::-webkit-scrollbar {
-    width: 8px; height: 8px;
+  header {
+    background: #101012 !important;
+    border-color: var(--line) !important;
+    backdrop-filter: none !important;
   }
-  textarea::-webkit-scrollbar-track, pre::-webkit-scrollbar-track, .scroll-pane::-webkit-scrollbar-track {
-    background: #090c14;
+  aside { background: #101012 !important; }
+  canvas {
+    border-color: var(--line) !important;
+    box-shadow: none !important;
   }
-  textarea::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb, .scroll-pane::-webkit-scrollbar-thumb {
-    background: #263147; border-radius: 4px;
+  textarea, pre, .scroll-pane { background: #0e0e10 !important; color: #dcdcdc !important; }
+  #lineNumbers { background: #0b0b0d !important; color: #5f5f67 !important; border-color: var(--line) !important; }
+  #paneWgsl, #paneGlsl, #paneSvg, #paneAnchors { background: #0e0e10 !important; }
+  input[type="range"] { accent-color: var(--accent); }
+  button, select, input[type="range"] { border-radius: 5px !important; }
+  button { box-shadow: none !important; }
+  [class*="bg-gradient"] {
+    background-image: none !important;
+    background-color: var(--panel-2) !important;
   }
-  textarea::-webkit-scrollbar-thumb:hover, pre::-webkit-scrollbar-thumb:hover {
-    background: #3b4c6b;
+  [class*="shadow"] { box-shadow: none !important; }
+  [class*="backdrop"] { backdrop-filter: none !important; }
+  [class*="text-cyan"], [class*="text-emerald"], [class*="text-violet"],
+  [class*="text-sky"], [class*="text-purple"], [class*="text-fuchsia"],
+  [class*="text-indigo"], [class*="text-blue"], [class*="text-amber"] {
+    color: var(--accent) !important;
   }
+  [class*="bg-cyan"], [class*="bg-emerald"], [class*="bg-violet"],
+  [class*="bg-sky"], [class*="bg-purple"], [class*="bg-fuchsia"],
+  [class*="bg-indigo"], [class*="bg-blue"], [class*="bg-amber"] {
+    background-color: rgba(212, 178, 115, 0.08) !important;
+    background-image: none !important;
+  }
+  [class*="border-cyan"], [class*="border-emerald"], [class*="border-violet"],
+  [class*="border-sky"], [class*="border-purple"], [class*="border-fuchsia"],
+  [class*="border-indigo"], [class*="border-blue"], [class*="border-amber"] {
+    border-color: rgba(212, 178, 115, 0.30) !important;
+  }
+  [class*="bg-slate-800"], [class*="bg-slate-900"] {
+    background-color: #17171a !important;
+  }
+  [class*="border-slate-700"], [class*="border-slate-800"] {
+    border-color: var(--line) !important;
+  }
+  [class*="text-slate-100"], [class*="text-slate-200"], [class*="text-slate-300"] {
+    color: var(--text) !important;
+  }
+  [class*="text-slate-400"], [class*="text-slate-500"], [class*="text-slate-600"] {
+    color: var(--muted) !important;
+  }
+  [class*="rounded-lg"], [class*="rounded-md"], [class*="rounded-xl"] {
+    border-radius: 6px !important;
+  }
+  .preset-btn { background: transparent !important; color: var(--muted) !important; }
+  .preset-btn:hover { color: var(--text) !important; border-color: #4a4a50 !important; }
+  #toast { background: #17171a !important; border-color: var(--line) !important; color: var(--text) !important; }
+  textarea::-webkit-scrollbar, pre::-webkit-scrollbar, .scroll-pane::-webkit-scrollbar { width: 8px; height: 8px; }
+  textarea::-webkit-scrollbar-track, pre::-webkit-scrollbar-track, .scroll-pane::-webkit-scrollbar-track { background: #0d0d0f; }
+  textarea::-webkit-scrollbar-thumb, pre::-webkit-scrollbar-thumb, .scroll-pane::-webkit-scrollbar-thumb { background: #2b2b30; border-radius: 4px; }
+  textarea::-webkit-scrollbar-thumb:hover, pre::-webkit-scrollbar-thumb:hover, .scroll-pane::-webkit-scrollbar-thumb:hover { background: #3a3a40; }
 </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#07090e] text-slate-100 select-none">
@@ -53,18 +102,16 @@
 <!-- Top Navigation & Preset Bar -->
 <header class="border-b border-slate-800/80 bg-[#0b0f17]/95 backdrop-blur px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 z-20">
   <div class="flex items-center gap-3">
-    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-400 via-emerald-400 to-violet-500 p-[1.5px] shadow-lg shadow-cyan-500/20">
-      <div class="w-full h-full bg-[#090d16] rounded-[6.5px] flex items-center justify-center font-bold text-xs tracking-tighter text-cyan-300 mono">
-        M1
-      </div>
+    <div class="w-8 h-8 rounded-md bg-[#17171a] border border-[#303036] flex items-center justify-center">
+      <span class="font-bold text-xs tracking-tighter text-[#d4b273] mono">M</span>
     </div>
     <div>
       <div class="flex items-center gap-2">
         <span class="font-bold text-sm tracking-wide text-white">MESH ENGINE</span>
-        <span class="text-[11px] mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-medium">v1.0.0 Release</span>
-        <span id="wasmBadge" class="text-[11px] mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">Wasm SIMD/Linear Memory Ready</span>
+        <span class="text-[11px] mono px-2 py-0.5 rounded-full bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 font-medium">v1.0.0</span>
+        <span id="wasmBadge" class="text-[11px] mono px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 font-medium">WebAssembly ready</span>
       </div>
-      <p class="text-[11px] text-slate-400 hidden sm:block">Real-Time 120 FPS Declarative Vector &amp; SDF Pixel Studio (Zero DOM / Zero GIF)</p>
+      <p class="text-[11px] text-slate-400 hidden sm:block">Declarative vector graphics engine</p>
     </div>
   </div>
 
@@ -167,8 +214,9 @@
     <!-- Tab 1: Live .mesh Source Editor -->
     <div id="paneEditor" class="flex-1 flex flex-col relative">
       <div class="flex-1 flex overflow-hidden">
-        <div id="lineNumbers" class="w-11 py-3 px-2 text-right select-none bg-[#080b12] text-slate-600 mono text-xs leading-[1.55] overflow-hidden border-r border-slate-800/70">1</div>
+        <div id="lineNumbers" style="background:#0b0b0d !important;color:#5f5f67 !important;" class="w-11 py-3 px-2 text-right select-none bg-[#080b12] text-slate-600 mono text-xs leading-[1.55] overflow-hidden border-r border-slate-800/70">1</div>
         <textarea id="meshEditor" spellcheck="false" autocapitalize="off" autocomplete="off"
+          style="background:#0e0e10 !important;color:#dcdcdc !important;"
           class="flex-1 bg-[#090d15] text-cyan-100 mono text-xs leading-[1.55] p-3 focus:outline-none resize-none overflow-auto select-text"
           placeholder="// Enter declarative .mesh code..."></textarea>
       </div>
