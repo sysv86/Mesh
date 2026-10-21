@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and test (Make + CMake)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential \
+            pkg-config \
+            cmake \
+            libfreetype-dev \
+            libharfbuzz-dev \
+            libfontconfig1-dev \
+            libavcodec-dev \
+            libavformat-dev \
+            libavutil-dev \
+            libswscale-dev \
+            libx264-dev \
+            ffmpeg
+
+      - name: Build with Make
+        run: make -j"$(nproc)"
+
+      - name: Run Make test suite
+        run: make test
+
+      - name: Configure CMake
+        run: cmake -S . -B build-cmake -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build with CMake
+        run: cmake --build build-cmake -j"$(nproc)"
+
+      - name: Run CTest
+        run: ctest --test-dir build-cmake --output-on-failure
+
+      - name: Verify MP4 export
+        run: |
+          ./build/meshc animate examples/01_aurora_card.mesh \
+            -o build/ci-smoke.mp4 --duration 1 --fps 24 --width 480 --height 288 --aa 1
+          ffprobe -v error -select_streams v:0 \
+            -show_entries stream=codec_name,width,height,r_frame_rate,pix_fmt \
+            -show_entries format=duration \
+            -of default=noprint_wrappers=1 build/ci-smoke.mp4

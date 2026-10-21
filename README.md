@@ -1,5 +1,7 @@
 # Mesh
 
+[![CI](https://github.com/sysv86/Mesh/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/sysv86/Mesh/actions/workflows/ci.yml)
+
 Mesh is a declarative 2D vector graphics engine and compiler. A `.mesh`
 document contains shapes, typography, gradients, SDF effects, components,
 constraints and animation; the native engine rasterizes it through a
