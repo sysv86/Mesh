@@ -1,0 +1,134 @@
+mesh "dashboard" {
+  canvas {
+    width: 960
+    height: 600
+    background: #0A0C10
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  linear_gradient "accent" {
+    angle: 90
+    stop(0.0, #65D9FF)
+    stop(1.0, #A78BFA)
+  }
+
+  let margin = 32
+
+  rect "shell" {
+    x: margin
+    y: margin
+    width: width - margin * 2
+    height: height - margin * 2
+    radius: 24
+    fill: #111419
+    stroke: fade(#FFFFFF, 0.08)
+    stroke_width: 1.5
+    shadow(0, 24, 60, fade(#000000, 0.5))
+  }
+
+  text "title" {
+    at: (@shell.left + 28, @shell.top + 44)
+    baseline: true
+    content: "SYSTEM / OVERVIEW"
+    size: 20
+    weight: 700
+    letter_spacing: 1.2
+    fill: #F8FAFC
+  }
+
+  text "status" {
+    at: (@shell.right - 28, @shell.top + 44)
+    baseline: true
+    align: right
+    content: "LIVE"
+    size: 12
+    weight: 700
+    letter_spacing: 1.4
+    fill: #7EE787
+  }
+
+  grid "stats" {
+    x: @shell.left + 28
+    y: @shell.top + 76
+    cols: 3
+    gap: 12
+
+    rect {
+      x: 0 y: 0 width: 240 height: 72 radius: 14
+      fill: #171A20
+      stroke: fade(#FFFFFF, 0.06)
+      stroke_width: 1
+    }
+    rect {
+      x: 0 y: 0 width: 240 height: 72 radius: 14
+      fill: #171A20
+      stroke: fade(#FFFFFF, 0.06)
+      stroke_width: 1
+    }
+    rect {
+      x: 0 y: 0 width: 240 height: 72 radius: 14
+      fill: #171A20
+      stroke: fade(#FFFFFF, 0.06)
+      stroke_width: 1
+    }
+  }
+
+  text "stat_a" {
+    at: (@stats.left + 20, @stats.top + 28)
+    baseline: true
+    content: "12.4K"
+    size: 22
+    weight: 700
+    fill: #F8FAFC
+  }
+  text "stat_a_label" {
+    at: (@stats.left + 20, @stats.top + 54)
+    baseline: true
+    content: "requests"
+    size: 11
+    fill: #7D8796
+  }
+
+  rect "chart" {
+    x: @shell.left + 28
+    y: @stats.bottom + 20
+    width: @shell.width - 56
+    height: 208
+    radius: 16
+    fill: #0E1116
+    stroke: fade(#FFFFFF, 0.06)
+    stroke_width: 1
+  }
+
+  repeat "bars" {
+    count: 18
+    let h = oscillate(t, 0.14, 26, 132, i * 19)
+    let bx = @chart.left + 24 + i * 38
+    rect {
+      x: bx
+      y: @chart.bottom - 26 - h
+      width: 20
+      height: h
+      radius: 10
+      fill: mix(#65D9FF, #A78BFA, rep_t)
+      opacity: 0.82
+    }
+  }
+
+  boolean "mark" {
+    op: smooth_union(12)
+    fill: @accent
+    circle { center: (@shell.right - 52, @shell.bottom - 52) radius: 18 }
+    circle { center: (@shell.right - 36, @shell.bottom - 52) radius: 12 }
+  }
+
+  text "footer" {
+    at: (@shell.left + 28, @shell.bottom - 28)
+    baseline: true
+    content: "MESH / SDF DASHBOARD"
+    size: 11
+    letter_spacing: 1.4
+    fill: #596273
+  }
+}

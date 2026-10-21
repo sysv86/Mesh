@@ -1,0 +1,86 @@
+mesh "text_card" {
+  canvas {
+    width: 900
+    height: 560
+    background: #0B0D12
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans, DejaVu Sans"
+  }
+
+  linear_gradient "accent" {
+    angle: 90
+    stop(0.0, #65D9FF)
+    stop(1.0, #A78BFA)
+  }
+
+  rect "card" {
+    x: 40
+    y: 40
+    width: 820
+    height: 480
+    radius: 24
+    fill: #111419
+    stroke: fade(#FFFFFF, 0.08)
+    stroke_width: 1.5
+  }
+
+  text "eyebrow" {
+    at: (72, 86)
+    baseline: true
+    content: "TYPOGRAPHY / SPECIMEN"
+    size: 11
+    weight: 700
+    letter_spacing: 1.8
+    fill: #7D8796
+  }
+
+  text "title" {
+    at: (72, 176)
+    baseline: true
+    content: "Type is geometry."
+    size: 64
+    weight: 700
+    fill: @accent
+    stroke: #F8FAFC
+    stroke_width: 0.5
+    glow(14, fade(#65D9FF, 0.22))
+  }
+
+  text "body" {
+    at: (72, 246)
+    baseline: true
+    content: "Shaped with HarfBuzz, converted to outlines, then sent through the same SDF pipeline as every other shape."
+    size: 18
+    line_height: 1.4
+    max_width: 600
+    wrap: true
+    fill: #A7B0BF
+  }
+
+  text "regular" {
+    at: (72, 348)
+    baseline: true
+    content: "Regular 400 / Italic 400 / Bold 700"
+    size: 24
+    fill: #F8FAFC
+  }
+
+  text "clip_word" {
+    at: (68, 486)
+    baseline: true
+    content: "MESH"
+    size: 112
+    weight: 700
+    fill: #FFFFFF
+    opacity: 0
+  }
+
+  rect "clip_fill" {
+    x: 0
+    y: 0
+    width: width
+    height: height
+    fill: @accent
+    clip: @clip_word
+  }
+}

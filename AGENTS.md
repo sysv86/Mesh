@@ -53,6 +53,7 @@ ctest --test-dir build-cmake --output-on-failure
 | `include/mesh_c_api.h` | Stable C ABI |
 | `tests/test_suite.cpp` | End-to-end regression suite |
 | `examples/` | Showcase documents, bundled fonts and goose examples |
+| `skills/` | Portable Agent Skills for Mesh authoring, typography and motion |
 | `web/index.html` | Browser parser, Canvas2D preview and preset gallery |
 | `scripts/` | Standalone WASM kernel builder and project scripts |
 
@@ -192,6 +193,25 @@ Additional checks:
 - `ffprobe` for MP4: H.264, expected dimensions/fps/duration, no audio and
   `moov` before `mdat`.
 - `meshc pack` → render `.meshb` → `unpack` → validate for binary changes.
+
+## Agent skills
+
+The repository publishes portable Agent Skills in `skills/`:
+
+- `skills/mesh/SKILL.md` — core `.mesh` language and authoring workflow.
+- `skills/mesh-typography/SKILL.md` — font declarations, text layout and text as geometry.
+- `skills/mesh-motion/SKILL.md` — time expressions, animation and video export.
+
+Each skill has YAML frontmatter with `name` and `description`; the description
+is the routing text. Keep `SKILL.md` lean and put detailed tables in
+`references/`. Every bundled `.mesh` example must validate:
+
+```bash
+bash skills/mesh/scripts/validate-examples.sh
+```
+
+Do not add a new skill for a narrow one-off task. Update an existing skill or
+its references instead.
 
 ## Examples and assets
 

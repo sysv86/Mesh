@@ -1,0 +1,80 @@
+mesh "starter" {
+  canvas {
+    width: 800
+    height: 480
+    background: #0B0D12
+    font_family: "Open Sans"
+    font_fallback: "Noto Sans"
+  }
+
+  linear_gradient "accent" {
+    angle: 135
+    stop(0.0, #65D9FF)
+    stop(1.0, #A78BFA)
+  }
+
+  let pad = 40
+
+  rect "card" {
+    x: pad
+    y: pad
+    width: width - pad * 2
+    height: height - pad * 2
+    radius: 24
+    fill: #151922
+    stroke: fade(#FFFFFF, 0.08)
+    stroke_width: 1.5
+    shadow(0, 20, 50, fade(#000000, 0.55))
+  }
+
+  circle "orb" {
+    center: (96, 104)
+    radius: 14
+    fill: @accent
+    glow(18, fade(#65D9FF, 0.55))
+  }
+
+  text "title" {
+    at: (96, 160)
+    baseline: true
+    content: "Hello, Mesh."
+    size: 44
+    weight: 700
+    fill: #F8FAFC
+  }
+
+  text "body" {
+    at: (96, 204)
+    baseline: true
+    content: "A declarative vector scene with one animated value."
+    size: 17
+    fill: #94A3B8
+  }
+
+  rect "meter_track" {
+    x: 96
+    y: 300
+    width: 560
+    height: 8
+    radius: 4
+    fill: #20242B
+  }
+
+  rect "meter" {
+    x: 96
+    y: 300
+    width: oscillate(t, 0.18, 120, 560, 0)
+    height: 8
+    radius: 4
+    fill: @accent
+    glow(10, fade(#65D9FF, 0.35))
+  }
+
+  text "hint" {
+    at: (96, 380)
+    baseline: true
+    content: "meshc render starter.mesh -o starter.png --aa 4"
+    size: 12
+    fill: #64748B
+  }
+}

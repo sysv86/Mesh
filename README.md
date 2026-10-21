@@ -66,6 +66,21 @@ Useful commands:
 ./build/meshc animate input.mesh -o out.mp4 --duration 2 --fps 30
 ```
 
+## Agent skills
+
+Portable Agent Skills for writing Mesh live in `skills/`:
+
+- [`skills/mesh/SKILL.md`](skills/mesh/SKILL.md) — core `.mesh` authoring.
+- [`skills/mesh-typography/SKILL.md`](skills/mesh-typography/SKILL.md) — fonts and text.
+- [`skills/mesh-motion/SKILL.md`](skills/mesh-motion/SKILL.md) — animation and video export.
+
+They can be copied into `~/.opencode/skills/` or `~/.claude/skills/`. Validate
+the bundled examples with:
+
+```bash
+bash skills/mesh/scripts/validate-examples.sh
+```
+
 ## Video export (MP4 / MOV)
 
 `meshc animate` selects the encoder from the output extension. `.png` writes a

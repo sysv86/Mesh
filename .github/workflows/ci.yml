@@ -47,6 +47,9 @@ jobs:
       - name: Run Make test suite
         run: make test
 
+      - name: Validate Agent Skill examples
+        run: bash skills/mesh/scripts/validate-examples.sh
+
       - name: Configure CMake
         run: cmake -S . -B build-cmake -DCMAKE_BUILD_TYPE=Release
 
